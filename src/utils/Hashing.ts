@@ -1,6 +1,6 @@
 import CID from 'cids'
 import multihashing from 'multihashing-async';
-import { ContentFileHash, ContentFile } from 'types';
+import { ContentFileHash, ContentFile } from '../types';
 
 export class Hashing {
 
