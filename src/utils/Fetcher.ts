@@ -27,16 +27,16 @@ export class Fetcher {
         return this.fetchInternal(url, response => response.buffer(), opts)
     }
 
-    async postForm(url: string, form: FormData, options?: RequestOptions): Promise<any> {
+    async postForm(url: string, form: FormData, headers: any = { }, options?: RequestOptions): Promise<any> {
         const opts = applyDefaults({ attempts: 1,
             timeout: this.defaultPostTimeout,
             waitTime: '1s',
         }, options)
 
-        this.fetchInternal(url, response => response.json(), opts, 'POST', form)
+        this.fetchInternal(url, response => response.json(), opts, 'POST', form, headers)
     }
 
-    private async fetchInternal<T>(url: string, responseConsumer: (response) => Promise<T>, options: CompleteRequestOptions, method: string = 'GET', body?: FormData): Promise<T> {
+    private async fetchInternal<T>(url: string, responseConsumer: (response) => Promise<T>, options: CompleteRequestOptions, method: string = 'GET', body?: FormData, headers: any = { }): Promise<T> {
         const controller = new AbortController();
         const timeout = setTimeout(() => {
             controller.abort();
@@ -44,7 +44,7 @@ export class Fetcher {
 
         try {
             return retry(async () => {
-                const response = await fetch(url, { signal: controller.signal, body, method });
+                const response = await fetch(url, { signal: controller.signal, body, method, headers });
                 if (response.ok) {
                     return await responseConsumer(response)
                 } else {
