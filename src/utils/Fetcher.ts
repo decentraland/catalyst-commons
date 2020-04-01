@@ -49,7 +49,7 @@ export class Fetcher {
                     return await responseConsumer(response)
                 } else {
                     const responseText = await response.text()
-                    throw new Error(`Failed to fetch ${url}. Got status ${response.status}. Response was ${responseText}`)
+                    throw new Error(`Failed to fetch ${url}. Got status ${response.status}. Response was '${responseText}'`)
                 }
             } finally {
                 clearTimeout(timeout)
