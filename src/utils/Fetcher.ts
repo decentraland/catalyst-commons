@@ -33,7 +33,7 @@ export class Fetcher {
             waitTime: '1s',
         }, options)
 
-        this.fetchInternal(url, response => response.json(), opts, 'POST', form, headers)
+        return this.fetchInternal(url, response => response.json(), opts, 'POST', form, headers)
     }
 
     private async fetchInternal<T>(url: string, responseConsumer: (response) => Promise<T>, options: CompleteRequestOptions, method: string = 'GET', body?: FormData, headers: any = { }): Promise<T> {
