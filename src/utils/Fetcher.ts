@@ -37,13 +37,13 @@ export class Fetcher {
     }
 
     private async fetchInternal<T>(url: string, responseConsumer: (response) => Promise<T>, options: CompleteRequestOptions, method: string = 'GET', body?: FormData, headers: any = { }): Promise<T> {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => {
-            controller.abort();
-        }, ms(options.timeout));
+        return retry(async () => {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => {
+                controller.abort();
+            }, ms(options.timeout));
 
-        try {
-            return retry(async () => {
+            try {
                 const response = await fetch(url, { signal: controller.signal, body, method, headers });
                 if (response.ok) {
                     return await responseConsumer(response)
@@ -51,10 +51,10 @@ export class Fetcher {
                     const responseText = await response.text()
                     throw new Error(`Failed to fetch ${url}. Got status ${response.status}. Response was ${responseText}`)
                 }
-            }, options.attempts, options.waitTime)
-        } finally {
-            clearTimeout(timeout)
-        }
+            } finally {
+                clearTimeout(timeout)
+            }
+        }, options.attempts, options.waitTime)
     }
 
 }
