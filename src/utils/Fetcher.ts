@@ -1,9 +1,8 @@
 import ms from "ms";
+import fetch from 'isomorphic-fetch';
 import AbortController from 'abort-controller';
 import { clearTimeout, setTimeout } from "timers"
 import { retry, applyDefaults } from "./Helper";
-
-require('isomorphic-fetch');
 
 export class Fetcher {
 

@@ -41,6 +41,7 @@
   },
   "homepage": "https://github.com/decentraland/catalyst-commons#readme",
   "dependencies": {
+    "@types/isomorphic-fetch": "0.0.35",
     "@types/ms": "^0.7.31",
     "abort-controller": "^3.0.0",
     "cids": "^0.8.0",
