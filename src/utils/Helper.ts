@@ -24,11 +24,11 @@ export async function retry<T>(
                     if (allFailedCallback) {
                         allFailedCallback()
                     }
-                    throw error
+                    return Promise.reject(error)
                 }
             }
         }
-        throw new Error('Should never reach here')
+        return Promise.reject(new Error('Should never reach here'))
 }
 
 /** Add defaults to missing properties in the partial object */
