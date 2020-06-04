@@ -47,8 +47,8 @@ export type EntityVersion = string
 
 export type AvailableContentResult = { cid: ContentFileHash, available: boolean }[]
 
-export type PartialDeploymentHistory = {
-    deployments: Deployment[],
+export type PartialDeploymentHistory<T extends Partial<Deployment>> = {
+    deployments: T[],
     filters: DeploymentFilters,
     pagination: {
         offset: number,
