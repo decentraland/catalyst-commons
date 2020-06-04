@@ -3,3 +3,4 @@ tsconfig-build.json
 tslint.json
 src
 test
+.circleci

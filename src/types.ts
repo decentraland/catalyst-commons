@@ -1,5 +1,5 @@
 
-import { AuthChain } from 'dcl-crypto'
+import { AuthChain, EthAddress } from 'dcl-crypto'
 
 export type ContentFileHash = string
 export type Timestamp = number
@@ -33,6 +33,7 @@ export type ContentFile = {
 
 export type ServerVersion = string
 export type ServerName = string
+export type ServerAddress = string
 
 export type ServerStatus = {
     name: ServerName
@@ -44,7 +45,52 @@ export type ServerStatus = {
 
 export type EntityVersion = string
 
+export type AvailableContentResult = { cid: ContentFileHash, available: boolean }[]
+
+export type PartialDeploymentHistory = {
+    deployments: Deployment[],
+    filters: DeploymentFilters,
+    pagination: {
+        offset: number,
+        limit: number,
+        moreData: boolean,
+    },
+}
+
+export type DeploymentFilters = {
+    fromLocalTimestamp?: Timestamp,
+    toLocalTimestamp?: Timestamp,
+    deployedBy?: EthAddress[],
+    entityTypes?: EntityType[],
+    entityIds?: EntityId[],
+    pointers?: Pointer[],
+    onlyCurrentlyPointed?: boolean,
+}
+
+export type Deployment = {
+    entityType: EntityType,
+    entityId: EntityId,
+    pointers: Pointer[],
+    entityTimestamp: Timestamp,
+    content?: Map<string, ContentFileHash>,
+    metadata?: any,
+    deployedBy: EthAddress,
+    auditInfo: AuditInfo,
+}
+
 export type AuditInfo = {
+    version: EntityVersion,
+    authChain: AuthChain,
+    originServerUrl: ServerAddress,
+    originTimestamp: Timestamp,
+    localTimestamp: Timestamp,
+    overwrittenBy?: EntityId,
+    migrationData?: any,
+    isDenylisted?: boolean,
+    denylistedContent?: ContentFileHash[],
+}
+
+export type LegacyAuditInfo = {
     version: EntityVersion,
     deployedTimestamp: Timestamp
     authChain: AuthChain,
@@ -59,7 +105,7 @@ export type AuditInfo = {
 
 export type Profile = EntityMetadata
 
-export type DeploymentEvent = {
+export type LegacyDeploymentEvent = {
     /** The server where the user uploaded the entity */
     serverName: ServerName,
     entityType: EntityType,
@@ -68,10 +114,10 @@ export type DeploymentEvent = {
     timestamp: Timestamp,
 }
 
-export type DeploymentHistory = DeploymentEvent[]
+export type LegacyDeploymentHistory = LegacyDeploymentEvent[]
 
-export type PartialDeploymentHistory = {
-    events: DeploymentEvent[],
+export type LegacyPartialDeploymentHistory = {
+    events: LegacyDeploymentEvent[],
     filters: {
         from?: Timestamp,
         to?: Timestamp,
