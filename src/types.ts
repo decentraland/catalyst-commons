@@ -47,7 +47,7 @@ export type EntityVersion = string
 
 export type AvailableContentResult = { cid: ContentFileHash, available: boolean }[]
 
-export type PartialDeploymentHistory<T extends Partial<Deployment>> = {
+export type PartialDeploymentHistory<T extends DeploymentBase> = {
     deployments: T[],
     filters: DeploymentFilters,
     pagination: {
@@ -67,15 +67,22 @@ export type DeploymentFilters = {
     onlyCurrentlyPointed?: boolean,
 }
 
-export type Deployment = {
+export type Deployment = DeploymentBase & DeploymentWithPointers & DeploymentWithContent & DeploymentWithMetadata & DeploymentWithAuditInfo
+
+export type DeploymentBase = {
     entityType: EntityType,
     entityId: EntityId,
-    pointers: Pointer[],
     entityTimestamp: Timestamp,
-    content?: Map<string, ContentFileHash>,
-    metadata?: any,
     deployedBy: EthAddress,
-    auditInfo: AuditInfo,
+}
+export type DeploymentWithPointers = DeploymentBase & { pointers: Pointer[] }
+export type DeploymentWithContent = DeploymentBase & { content?: DeploymentContent[] }
+export type DeploymentWithMetadata = DeploymentBase & { metadata?: any }
+export type DeploymentWithAuditInfo = DeploymentBase & { auditInfo: AuditInfo }
+
+export type DeploymentContent = {
+    key: string,
+    hash: string,
 }
 
 export type AuditInfo = {
