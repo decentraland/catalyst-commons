@@ -43,7 +43,10 @@ export type ServerStatus = {
     historySize: number
 }
 
-export type EntityVersion = string
+export enum EntityVersion {
+    V2 = "v2",
+    V3 = "v3"
+}
 
 export type AvailableContentResult = { cid: ContentFileHash, available: boolean }[]
 
