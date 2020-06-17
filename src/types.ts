@@ -95,7 +95,7 @@ export type AuditInfo = {
     originTimestamp: Timestamp,
     localTimestamp: Timestamp,
     overwrittenBy?: EntityId,
-    migrationData?: any,
+    originalMetadata?: any,
     isDenylisted?: boolean,
     denylistedContent?: ContentFileHash[],
 }
