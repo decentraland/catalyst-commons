@@ -1,8 +1,7 @@
 import ms from "ms";
-import fetch from 'isomorphic-fetch';
-import AbortController from 'abort-controller';
-import { clearTimeout, setTimeout } from "timers"
-import { retry, applyDefaults } from "./Helper";
+require('isomorphic-fetch');
+import rfetch from '@nrk/rfetch'
+import { applyDefaults } from "./Helper";
 
 export class Fetcher {
 
@@ -36,24 +35,15 @@ export class Fetcher {
     }
 
     private async fetchInternal<T>(url: string, responseConsumer: (response) => Promise<T>, options: CompleteRequestOptions, method: string = 'GET', body?: FormData | string, headers: any = { }): Promise<T> {
-        return retry(async () => {
-            const controller = new AbortController();
-            const timeout = setTimeout(() => {
-                controller.abort();
-            }, ms(options.timeout));
-
-            try {
-                const response = await fetch(url, { signal: controller.signal, body, method, headers });
-                if (response.ok) {
-                    return await responseConsumer(response)
-                } else {
-                    const responseText = await response.text()
-                    throw new Error(`Failed to fetch ${url}. Got status ${response.status}. Response was '${responseText}'`)
-                }
-            } finally {
-                clearTimeout(timeout)
-            }
-        }, options.attempts, options.waitTime)
+        if (options.attempts <= 0) {
+            throw new Error('You must set at least one attempt.')
+        }
+        const response = await rfetch(url, { body, method, headers }, { signalTimeout: ms(options.timeout), retries: options.attempts, retryTimeout: ms(options.waitTime) });
+        if (response.ok) {
+            return await responseConsumer(response)
+        }
+        const responseText = await response.text()
+        throw new Error(`Failed to fetch ${url}. Got status ${response.status}. Response was '${responseText}'`)
     }
 
 }
