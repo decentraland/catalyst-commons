@@ -15,7 +15,7 @@ describe('Fetcher', () => {
 
     it('When a timeout is set but not reached, then the fetch is successful', async () => {
         const fetcher = new Fetcher()
-        await fetcher.fetchBuffer('https://httpstat.us/200?sleep=1000', { timeout: '5s' })
+        await fetcher.fetchBuffer('https://httpstat.us/200', { timeout: '5s' })
     }).timeout('10s')
 
 })

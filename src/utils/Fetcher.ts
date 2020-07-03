@@ -1,7 +1,8 @@
 import ms from "ms";
-require('isomorphic-fetch');
-import rfetch from '@nrk/rfetch'
-import { applyDefaults } from "./Helper";
+import AbortController from 'abort-controller';
+import crossFetch from 'cross-fetch'
+import { clearTimeout, setTimeout } from "timers"
+import { applyDefaults, retry } from "./Helper";
 
 export class Fetcher {
 
@@ -35,17 +36,25 @@ export class Fetcher {
     }
 
     private async fetchInternal<T>(url: string, responseConsumer: (response) => Promise<T>, options: CompleteRequestOptions, method: string = 'GET', body?: FormData | string, headers: any = { }): Promise<T> {
-        if (options.attempts <= 0) {
-            throw new Error('You must set at least one attempt.')
-        }
-        const response = await rfetch(url, { body, method, headers }, { signalTimeout: ms(options.timeout), retries: options.attempts, retryTimeout: ms(options.waitTime) });
-        if (response.ok) {
-            return await responseConsumer(response)
-        }
-        const responseText = await response.text()
-        throw new Error(`Failed to fetch ${url}. Got status ${response.status}. Response was '${responseText}'`)
-    }
+        return retry(async () => {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => {
+                controller.abort();
+            }, ms(options.timeout));
 
+            try {
+                const response = await crossFetch(url, { signal: controller.signal, body, method, headers });
+                if (response.ok) {
+                    return await responseConsumer(response)
+                } else {
+                    const responseText = await response.text()
+                    throw new Error(`Failed to fetch ${url}. Got status ${response.status}. Response was '${responseText}'`)
+                }
+            } finally {
+                clearTimeout(timeout)
+            }
+        }, options.attempts, options.waitTime)
+    }
 }
 
 export type RequestOptions = Partial<CompleteRequestOptions>
