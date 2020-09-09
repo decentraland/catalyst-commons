@@ -56,8 +56,8 @@ export class Fetcher {
         }, options.attempts, options.waitTime)
     }
 
-    async queryGraph<T = any>(url: string, query: string, variables: Record<string, any>): Promise<T> {
-        const json = await this.postForm(url, JSON.stringify({ query, variables }), { 'Content-Type': 'application/json' }, { attempts: 1 })
+    async queryGraph<T = any>(url: string, query: string, variables: Record<string, any>, options?: RequestOptions): Promise<T> {
+        const json = await this.postForm(url, JSON.stringify({ query, variables }), { 'Content-Type': 'application/json' }, options)
         if (json.errors) {
             throw new Error(
                 `Error querying graph. Reasons: ${JSON.stringify(json.errors)}`
