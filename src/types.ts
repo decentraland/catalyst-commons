@@ -28,7 +28,8 @@ export type Entity = {
 }
 
 export type ContentFile = {
-    name: string
+    name: string,
+    path: string,
     content: Buffer
 }
 
