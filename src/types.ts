@@ -71,6 +71,22 @@ export type DeploymentFilters = {
     onlyCurrentlyPointed?: boolean,
 }
 
+export type DeploymentSorting = {
+    field?: SortingField,
+    order?: SortingOrder
+}
+
+export enum SortingField {
+    ORIGIN_TIMESTAMP = 'origin_timestamp',
+    LOCAL_TIMESTAMP = 'local_timestamp',
+    ENTITY_TIMESTAMP = 'entity_timestamp'
+};
+
+export enum SortingOrder {
+    ASCENDING = 'ASC',
+    DESCENDING = 'DESC'
+};
+
 export type Deployment = DeploymentBase & DeploymentWithPointers & DeploymentWithContent & DeploymentWithMetadata & DeploymentWithAuditInfo
 
 export type DeploymentBase = {
