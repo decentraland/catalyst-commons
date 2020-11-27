@@ -1,6 +1,7 @@
 import ms from "ms";
 import AbortController from 'abort-controller';
 import crossFetch from 'cross-fetch'
+import blobToBuffer from 'blob-to-buffer'
 import { clearTimeout, setTimeout } from "timers"
 import { applyDefaults, retry } from "./Helper";
 
@@ -23,7 +24,7 @@ export class Fetcher {
             timeout: this.defaultFileDownloadRequestTimeout,
             waitTime: '1s',
         }, options)
-        return this.fetchInternal(url, response => response.buffer(), opts)
+        return this.fetchInternal(url, response => this.extractBuffer(response), opts)
     }
 
     async postForm(url: string, body: FormData | string, headers: any = { }, options?: RequestOptions): Promise<any> {
@@ -35,7 +36,7 @@ export class Fetcher {
         return this.fetchInternal(url, response => response.json(), opts, 'POST', body, headers)
     }
 
-    private async fetchInternal<T>(url: string, responseConsumer: (response) => Promise<T>, options: CompleteRequestOptions, method: string = 'GET', body?: FormData | string, headers: any = { }): Promise<T> {
+    private async fetchInternal<T>(url: string, responseConsumer: (response: Response) => Promise<T>, options: CompleteRequestOptions, method: string = 'GET', body?: FormData | string, headers: any = { }): Promise<T> {
         return retry(async () => {
             const controller = new AbortController();
             const timeout = setTimeout(() => {
@@ -66,6 +67,23 @@ export class Fetcher {
         return json.data
     }
 
+    private async extractBuffer(response: Response): Promise<Buffer> {
+        if ('buffer' in response) {
+            // @ts-ignore
+            return response.buffer()
+        }
+        const blob = await response.blob()
+        return this.asyncBlobToBuffer(blob)
+    }
+
+    private asyncBlobToBuffer(blob: Blob): Promise<Buffer> {
+        return new Promise((resolve, reject) => {
+          blobToBuffer(blob, (err: Error, buffer: Buffer) => {
+            if (err) reject(err)
+            resolve(buffer)
+          })
+        })
+    }
 }
 
 export type RequestOptions = Partial<CompleteRequestOptions>
