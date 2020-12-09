@@ -4,38 +4,18 @@ import crossFetch from 'cross-fetch'
 import blobToBuffer from 'blob-to-buffer'
 import { clearTimeout, setTimeout } from 'timers'
 import { retry } from './Helper'
+import { FetcherConfiguration, RequestOptions } from './FetcherConfiguration'
 
 export class Fetcher {
-  private readonly defaults = {
-    method: 'GET',
-    responseType: ResponseType.JSON,
-    attempts: 1,
-    waitTime: '1s',
-    timeout: '5m'
-  }
+  private readonly fetchJsonDefaults
+  private readonly fetchBufferDefaults
+  private readonly postDefaults
 
-  private readonly fetchJsonDefaults = {
-    ...this.defaults,
-    ...{
-      timeout: '30s',
-      waitTime: '0.5s'
-    }
+  constructor(customDefaults?: Partial<RequestOptions>) {
+    this.fetchJsonDefaults = Object.assign(FetcherConfiguration.fetchJsonDefaults, customDefaults)
+    this.fetchBufferDefaults = Object.assign(FetcherConfiguration.fetchBufferDefaults, customDefaults)
+    this.postDefaults = Object.assign(FetcherConfiguration.postDefaults, customDefaults)
   }
-  private readonly fetchBufferDefaults = {
-    ...this.defaults,
-    ...{
-      timeout: '1m',
-      responseType: ResponseType.Buffer
-    }
-  }
-  private readonly postDefaults = {
-    ...this.defaults,
-    ...{
-      method: 'POST'
-    }
-  }
-
-  constructor() {}
 
   async fetchJson(options: Partial<RequestOptions> & Pick<RequestOptions, 'url'>): Promise<any> {
     return this.fetchInternal(this.responseJsonHandler(), Object.assign(this.fetchJsonDefaults, options))
@@ -127,21 +107,4 @@ export class Fetcher {
       })
     })
   }
-}
-
-enum ResponseType {
-  JSON,
-  Buffer
-}
-
-type RequestOptions = {
-  url: string
-  method: string
-  responseType: ResponseType
-  // Time format accepted by ms: Examples: '0.5s', '2m', '3h', '100' (assumed to be milliseconds)
-  attempts: number // Number of attempts to perform the request
-  timeout: string // Time to abort the request. Time format accepted by ms
-  waitTime: string // Time to wait between attempts. Time format accepted by ms
-  body?: FormData | string
-  headers?: Record<string, string>
 }
