@@ -11,7 +11,9 @@
     "watch": "tsc --watch --project tsconfig-build.json",
     "test": "nyc mocha -r ts-node/register -r tsconfig-paths/register --exit \"test/**/*.spec.ts\"",
     "semantic-release": "semantic-release",
-    "commit-msg": "validate-commit-msg"
+    "commit-msg": "validate-commit-msg",
+    "lint:fix": "yarn eslint '**/*.{js,ts,tsx}' --quiet --fix",
+    "lint:check": "yarn eslint '**/*.{js,ts,tsx}' --quiet"
   },
   "nyc": {
     "all": true,
@@ -43,13 +45,20 @@
   "dependencies": {
     "@types/isomorphic-fetch": "0.0.35",
     "@types/ms": "^0.7.31",
+    "@typescript-eslint/eslint-plugin": "^4.9.0",
+    "@typescript-eslint/parser": "^4.9.0",
     "abort-controller": "^3.0.0",
     "blob-to-buffer": "^1.2.9",
     "cids": "^0.8.0",
     "cross-fetch": "^3.0.5",
     "dcl-crypto": "^2.1.0",
+    "deepmerge": "^4.2.2",
+    "eslint": "^7.14.0",
+    "eslint-config-prettier": "^6.15.0",
+    "eslint-plugin-prettier": "^3.2.0",
     "ms": "^2.1.2",
-    "multihashing-async": "^0.8.1"
+    "multihashing-async": "^0.8.1",
+    "prettier": "^2.2.1"
   },
   "devDependencies": {
     "@types/chai": "^4.2.8",
@@ -58,26 +67,22 @@
     "@types/sinon": "^7.5.1",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
-    "dcl-tslint-config-standard": "^1.0.1",
     "husky": "^1.0.1",
     "mocha": "^5.2.0",
+    "mockttp": "^1.0.3",
     "nyc": "^14.1.1",
-    "prettier": "^1.10.2",
     "semantic-release": "^17.2.3",
     "sinon": "^8.1.1",
-    "ts-mockito": "^2.5.0",
+    "ts-mockito": "^2.6.1",
     "ts-node": "^7.0.1",
     "tsconfig-paths": "^3.9.0",
-    "tslint": "^5.7.0",
-    "tslint-config-prettier": "^1.10.0",
-    "tslint-language-service": "^0.9.9",
-    "tslint-plugin-prettier": "^1.3.0",
     "typescript": "^3.7.5",
     "validate-commit-msg": "^2.14.0"
   },
   "prettier": {
-    "printWidth": 80,
+    "semi": false,
     "singleQuote": true,
-    "semi": false
+    "printWidth": 120,
+    "trailingComma": "none"
   }
 }
