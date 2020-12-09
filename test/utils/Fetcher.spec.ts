@@ -19,7 +19,7 @@ describe('Fetcher', () => {
       return {}
     })
 
-    const fetch = new Fetcher().fetchBuffer({ url: 'http://localhost:8080/mocked-path', timeout: '5s' })
+    const fetch = new Fetcher({}).fetchBuffer({ url: 'http://localhost:8080/mocked-path', timeout: '5s' })
 
     await expect(fetch).to.be.rejectedWith('The user aborted a request.')
   }).timeout('15s')
@@ -27,7 +27,7 @@ describe('Fetcher', () => {
   it('When a timeout is set but not reached, then the fetch is successful', async () => {
     await mockServer.get('/mocked-path').thenReply(200, '{"body": "matching body"}')
 
-    const fetch = new Fetcher().fetchBuffer({ url: 'http://localhost:8080/mocked-path', timeout: '5s' })
+    const fetch = new Fetcher({}).fetchBuffer({ url: 'http://localhost:8080/mocked-path', timeout: '5s' })
 
     expect((await fetch).toString()).to.include('matching body')
   }).timeout('10s')
@@ -35,7 +35,7 @@ describe('Fetcher', () => {
   it('When making a POST with custom headers they are sent to the upstream', async () => {
     await mockServer.post('/mocked-path').thenReply(200, '{"body": "matching body"}')
 
-    const fetch = new Fetcher().postForm({
+    const fetch = new Fetcher({}).postForm({
       url: 'http://localhost:8080/mocked-path',
       headers: { 'user-agent': 'ContentServer/v2' }
     })
@@ -47,7 +47,7 @@ describe('Fetcher', () => {
   it('When making a GET JSON with custom headers they are sent to the upstream', async () => {
     await mockServer.get('/mocked-path').thenReply(200, '{"body": "matching body"}')
 
-    const fetch = new Fetcher().fetchJson({
+    const fetch = new Fetcher({}).fetchJson({
       url: 'http://localhost:8080/mocked-path',
       headers: { 'user-agent': 'ContentServer/v2' }
     })
@@ -59,7 +59,7 @@ describe('Fetcher', () => {
   it('When making a GET Buffer with custom headers they are sent to the upstream', async () => {
     await mockServer.get('/mocked-path').thenReply(200, '{"body": "matching body"}')
 
-    const fetch = new Fetcher().fetchBuffer({
+    const fetch = new Fetcher({}).fetchBuffer({
       url: 'http://localhost:8080/mocked-path',
       headers: { 'user-agent': 'ContentServer/v2' }
     })
@@ -76,6 +76,33 @@ describe('Fetcher', () => {
 
     expect((await fetch).body).to.include('matching body')
     await assertFetchHasHeader('user-agent', 'ContentServer/v2')
+  }).timeout('10s')
+
+  it('Given a Fetcher with custom defaults headers when configuring a header override then all headers are present', async () => {
+    await mockServer.get('/mocked-path').thenReply(200, '{"body": "matching body"}')
+    const fetcherWithHeadersConfig = new Fetcher({ headers: { 'user-agent': 'ContentServer/v2' } })
+
+    const fetch = fetcherWithHeadersConfig.fetchJson({
+      url: 'http://localhost:8080/mocked-path',
+      headers: { 'another-header': 'another-value' }
+    })
+
+    expect((await fetch).body).to.include('matching body')
+    await assertFetchHasHeader('user-agent', 'ContentServer/v2')
+    await assertFetchHasHeader('another-header', 'another-value')
+  }).timeout('10s')
+
+  it('Given a Fetcher with custom defaults headers when overriding the value then it is present', async () => {
+    await mockServer.get('/mocked-path').thenReply(200, '{"body": "matching body"}')
+    const fetcherWithHeadersConfig = new Fetcher({ headers: { 'user-agent': 'ContentServer/v2' } })
+
+    const fetch = fetcherWithHeadersConfig.fetchJson({
+      url: 'http://localhost:8080/mocked-path',
+      headers: { 'user-agent': 'another-value' }
+    })
+
+    expect((await fetch).body).to.include('matching body')
+    await assertFetchHasHeader('user-agent', 'another-value')
   }).timeout('10s')
 })
 

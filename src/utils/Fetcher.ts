@@ -2,6 +2,7 @@ import ms from 'ms'
 import AbortController from 'abort-controller'
 import crossFetch from 'cross-fetch'
 import blobToBuffer from 'blob-to-buffer'
+import merge from 'deepmerge'
 import { clearTimeout, setTimeout } from 'timers'
 import { retry } from './Helper'
 import { FETCH_BUFFER_DEFAULTS, FETCH_JSON_DEFAULTS, POST_DEFAULTS, RequestOptions } from './FetcherConfiguration'
@@ -11,25 +12,22 @@ export class Fetcher {
   private readonly fetchBufferDefaults
   private readonly postDefaults
 
-  constructor(customDefaults?: Partial<RequestOptions>) {
-    this.fetchJsonDefaults = Object.assign(FETCH_JSON_DEFAULTS, customDefaults)
-    this.fetchBufferDefaults = Object.assign(FETCH_BUFFER_DEFAULTS, customDefaults)
-    this.postDefaults = Object.assign(POST_DEFAULTS, customDefaults)
+  constructor(customDefaults: Partial<RequestOptions>) {
+    this.fetchJsonDefaults = merge(FETCH_JSON_DEFAULTS, customDefaults)
+    this.fetchBufferDefaults = merge(FETCH_BUFFER_DEFAULTS, customDefaults)
+    this.postDefaults = merge(POST_DEFAULTS, customDefaults)
   }
 
   async fetchJson(options: Partial<RequestOptions> & Pick<RequestOptions, 'url'>): Promise<any> {
-    return this.fetchInternal((response) => response.json(), Object.assign(this.fetchJsonDefaults, options))
+    return this.fetchInternal((response) => response.json(), merge(this.fetchJsonDefaults, options))
   }
 
   async fetchBuffer(options: Partial<RequestOptions> & Pick<RequestOptions, 'url'>): Promise<Buffer> {
-    return this.fetchInternal(
-      (response) => this.extractBuffer(response),
-      Object.assign(this.fetchBufferDefaults, options)
-    )
+    return this.fetchInternal((response) => this.extractBuffer(response), merge(this.fetchBufferDefaults, options))
   }
 
   async postForm(options: Partial<RequestOptions> & Pick<RequestOptions, 'url'>): Promise<any> {
-    return this.fetchInternal((response) => response.json(), Object.assign(this.postDefaults, options))
+    return this.fetchInternal((response) => response.json(), merge(this.postDefaults, options))
   }
 
   async queryGraph<T = any>(
