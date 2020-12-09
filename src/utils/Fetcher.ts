@@ -4,7 +4,7 @@ import crossFetch from 'cross-fetch'
 import blobToBuffer from 'blob-to-buffer'
 import { clearTimeout, setTimeout } from 'timers'
 import { retry } from './Helper'
-import { FetchBufferDefaults, FetchJsonDefaults, PostDefaults, RequestOptions } from './FetcherConfiguration'
+import { FETCH_BUFFER_DEFAULTS, FETCH_JSON_DEFAULTS, POST_DEFAULTS, RequestOptions } from './FetcherConfiguration'
 
 export class Fetcher {
   private readonly fetchJsonDefaults
@@ -12,9 +12,9 @@ export class Fetcher {
   private readonly postDefaults
 
   constructor(customDefaults?: Partial<RequestOptions>) {
-    this.fetchJsonDefaults = Object.assign(FetchJsonDefaults, customDefaults)
-    this.fetchBufferDefaults = Object.assign(FetchBufferDefaults, customDefaults)
-    this.postDefaults = Object.assign(PostDefaults, customDefaults)
+    this.fetchJsonDefaults = Object.assign(FETCH_JSON_DEFAULTS, customDefaults)
+    this.fetchBufferDefaults = Object.assign(FETCH_BUFFER_DEFAULTS, customDefaults)
+    this.postDefaults = Object.assign(POST_DEFAULTS, customDefaults)
   }
 
   async fetchJson(options: Partial<RequestOptions> & Pick<RequestOptions, 'url'>): Promise<any> {

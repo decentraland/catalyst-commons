@@ -8,23 +8,23 @@ export type RequestOptions = {
   headers?: Record<string, string>
 }
 
-export const FetcherDefaults = {
+export const FETCHER_DEFAULTS = {
   method: 'GET',
   attempts: 1,
   waitTime: '1s',
   timeout: '5m'
 }
 
-export const FetchJsonDefaults = {
-  ...FetcherDefaults,
+export const FETCH_JSON_DEFAULTS = {
+  ...FETCHER_DEFAULTS,
   timeout: '30s',
   waitTime: '0.5s'
 }
-export const FetchBufferDefaults = {
-  ...FetcherDefaults,
+export const FETCH_BUFFER_DEFAULTS = {
+  ...FETCHER_DEFAULTS,
   timeout: '1m'
 }
-export const PostDefaults = {
-  ...FetcherDefaults,
+export const POST_DEFAULTS = {
+  ...FETCHER_DEFAULTS,
   method: 'POST'
 }
