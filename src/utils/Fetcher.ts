@@ -12,10 +12,10 @@ export class Fetcher {
   private readonly fetchBufferDefaults
   private readonly postDefaults
 
-  constructor(customDefaults: Partial<RequestOptions>) {
-    this.fetchJsonDefaults = merge(FETCH_JSON_DEFAULTS, customDefaults)
-    this.fetchBufferDefaults = merge(FETCH_BUFFER_DEFAULTS, customDefaults)
-    this.postDefaults = merge(POST_DEFAULTS, customDefaults)
+  constructor(customDefaults?: Partial<RequestOptions>) {
+    this.fetchJsonDefaults = merge(FETCH_JSON_DEFAULTS, customDefaults ?? {})
+    this.fetchBufferDefaults = merge(FETCH_BUFFER_DEFAULTS, customDefaults ?? {})
+    this.postDefaults = merge(POST_DEFAULTS, customDefaults ?? {})
   }
 
   async fetchJson(options: Partial<RequestOptions> & Pick<RequestOptions, 'url'>): Promise<any> {
