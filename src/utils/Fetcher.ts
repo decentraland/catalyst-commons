@@ -4,7 +4,7 @@ import crossFetch from 'cross-fetch'
 import blobToBuffer from 'blob-to-buffer'
 import { clearTimeout, setTimeout } from 'timers'
 import { retry } from './Helper'
-import { FetcherConfiguration, RequestOptions } from './FetcherConfiguration'
+import { FetchBufferDefaults, FetchJsonDefaults, PostDefaults, RequestOptions } from './FetcherConfiguration'
 
 export class Fetcher {
   private readonly fetchJsonDefaults
@@ -12,21 +12,24 @@ export class Fetcher {
   private readonly postDefaults
 
   constructor(customDefaults?: Partial<RequestOptions>) {
-    this.fetchJsonDefaults = Object.assign(FetcherConfiguration.fetchJsonDefaults, customDefaults)
-    this.fetchBufferDefaults = Object.assign(FetcherConfiguration.fetchBufferDefaults, customDefaults)
-    this.postDefaults = Object.assign(FetcherConfiguration.postDefaults, customDefaults)
+    this.fetchJsonDefaults = Object.assign(FetchJsonDefaults, customDefaults)
+    this.fetchBufferDefaults = Object.assign(FetchBufferDefaults, customDefaults)
+    this.postDefaults = Object.assign(PostDefaults, customDefaults)
   }
 
   async fetchJson(options: Partial<RequestOptions> & Pick<RequestOptions, 'url'>): Promise<any> {
-    return this.fetchInternal(this.responseJsonHandler(), Object.assign(this.fetchJsonDefaults, options))
+    return this.fetchInternal((response) => response.json(), Object.assign(this.fetchJsonDefaults, options))
   }
 
   async fetchBuffer(options: Partial<RequestOptions> & Pick<RequestOptions, 'url'>): Promise<Buffer> {
-    return this.fetchInternal(this.responseBufferHandler(), Object.assign(this.fetchBufferDefaults, options))
+    return this.fetchInternal(
+      (response) => this.extractBuffer(response),
+      Object.assign(this.fetchBufferDefaults, options)
+    )
   }
 
   async postForm(options: Partial<RequestOptions> & Pick<RequestOptions, 'url'>): Promise<any> {
-    return this.fetchInternal(this.responseJsonHandler(), Object.assign(this.postDefaults, options))
+    return this.fetchInternal((response) => response.json(), Object.assign(this.postDefaults, options))
   }
 
   async queryGraph<T = any>(
@@ -79,14 +82,6 @@ export class Fetcher {
       options.attempts,
       options.waitTime
     )
-  }
-
-  private responseJsonHandler(): (response: Response) => Promise<any> {
-    return (response) => response.json()
-  }
-
-  private responseBufferHandler(): (response: Response) => Promise<any> {
-    return (response) => this.extractBuffer(response)
   }
 
   private async extractBuffer(response: Response): Promise<Buffer> {
