@@ -68,7 +68,7 @@ describe('Fetcher', () => {
     await assertFetchHasHeader('user-agent', 'ContentServer/v2')
   }).timeout('10s')
 
-  it('When configuring a Fetcher with custom headers then every request has them', async () => {
+  it('When configuring a Fetcher with custom defaults headers then every request has them', async () => {
     await mockServer.get('/mocked-path').thenReply(200, '{"body": "matching body"}')
     const fetcherWithHeadersConfig = new Fetcher({ headers: { 'user-agent': 'ContentServer/v2' } })
 

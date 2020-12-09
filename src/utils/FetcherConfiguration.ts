@@ -26,22 +26,16 @@ export class FetcherConfiguration {
 
   static fetchJsonDefaults = {
     ...FetcherConfiguration.defaults,
-    ...{
-      timeout: '30s',
-      waitTime: '0.5s'
-    }
+    timeout: '30s',
+    waitTime: '0.5s'
   }
   static fetchBufferDefaults = {
     ...FetcherConfiguration.defaults,
-    ...{
-      timeout: '1m',
-      responseType: FetcherResponseType.Buffer
-    }
+    timeout: '1m',
+    responseType: FetcherResponseType.Buffer
   }
   static postDefaults = {
     ...FetcherConfiguration.defaults,
-    ...{
-      method: 'POST'
-    }
+    method: 'POST'
   }
 }
