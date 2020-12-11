@@ -34,7 +34,7 @@ export async function retry<T>(
 }
 
 /** Add defaults to missing properties in the partial object */
-export function applyDefaults<T>(defaults: T, partial?: Partial<T>): T {
+export function applyDefaults<T, K = T | Partial<T>>(defaults: K, partial?: Partial<T>): K {
   const complete = Object.assign(defaults, partial)
   return complete
 }
@@ -45,12 +45,14 @@ export function applySomeDefaults<T>(defaults: Partial<T>, partial?: Partial<T>)
   return complete
 }
 
-export function mergeRequestOptions(
-  aRequestOption: CompleteRequestOptions,
+export function mergeRequestOptions<T = CompleteRequestOptions | RequestOptions>(
+  aRequestOption: T,
   anotherRequestOption: RequestOptions
-): CompleteRequestOptions {
-  const headers: Record<string, string> = { ...aRequestOption.headers, ...anotherRequestOption.headers }
-  const result: CompleteRequestOptions = applyDefaults(aRequestOption, anotherRequestOption)
-  result.headers = headers
-  return result
+): T {
+  const headers: Record<string, string> = {
+    ...(aRequestOption as RequestOptions).headers,
+    ...anotherRequestOption.headers
+  }
+  const result: T = applyDefaults(aRequestOption, anotherRequestOption)
+  return { ...result, headers }
 }
