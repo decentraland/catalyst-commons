@@ -1,4 +1,5 @@
 import ms from 'ms'
+import { CompleteRequestOptions, RequestOptions } from './FetcherConfiguration'
 
 export function delay(time: string): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms(time)))
@@ -42,4 +43,14 @@ export function applyDefaults<T>(defaults: T, partial?: Partial<T>): T {
 export function applySomeDefaults<T>(defaults: Partial<T>, partial?: Partial<T>): Partial<T> {
   const complete = Object.assign(defaults, partial)
   return complete
+}
+
+export function mergeRequestOptions(
+  aRequestOption: CompleteRequestOptions,
+  anotherRequestOption: RequestOptions
+): CompleteRequestOptions {
+  const headers: Record<string, string> = { ...aRequestOption.headers, ...anotherRequestOption.headers }
+  const result: CompleteRequestOptions = applyDefaults(aRequestOption, anotherRequestOption)
+  result.headers = headers
+  return result
 }

@@ -2,40 +2,51 @@ import ms from 'ms'
 import AbortController from 'abort-controller'
 import crossFetch from 'cross-fetch'
 import blobToBuffer from 'blob-to-buffer'
-import merge from 'deepmerge'
 import { clearTimeout, setTimeout } from 'timers'
-import { retry } from './Helper'
-import { FETCH_BUFFER_DEFAULTS, FETCH_JSON_DEFAULTS, POST_DEFAULTS, RequestOptions } from './FetcherConfiguration'
+import { mergeRequestOptions, retry } from './Helper'
+import {
+  CompleteRequestOptions,
+  FETCH_BUFFER_DEFAULTS,
+  FETCH_JSON_DEFAULTS,
+  POST_DEFAULTS,
+  RequestOptions
+} from './FetcherConfiguration'
 
 export class Fetcher {
-  private readonly fetchJsonDefaults
-  private readonly fetchBufferDefaults
-  private readonly postDefaults
+  constructor(private readonly customDefaults?: Omit<RequestOptions, 'body'>) {}
 
-  constructor(customDefaults?: Partial<RequestOptions>) {
-    this.fetchJsonDefaults = merge(FETCH_JSON_DEFAULTS, customDefaults ?? {})
-    this.fetchBufferDefaults = merge(FETCH_BUFFER_DEFAULTS, customDefaults ?? {})
-    this.postDefaults = merge(POST_DEFAULTS, customDefaults ?? {})
+  async fetchJson(url: string, options?: RequestOptions): Promise<any> {
+    return this.fetchInternal(
+      url,
+      (response) => response.json(),
+      this.completeOptionsWithDefault(FETCH_JSON_DEFAULTS, options)
+    )
   }
 
-  async fetchJson(options: Partial<RequestOptions> & Pick<RequestOptions, 'url'>): Promise<any> {
-    return this.fetchInternal((response) => response.json(), merge(this.fetchJsonDefaults, options))
+  async fetchBuffer(url: string, options?: RequestOptions): Promise<Buffer> {
+    return this.fetchInternal(
+      url,
+      (response) => this.extractBuffer(response),
+      this.completeOptionsWithDefault(FETCH_BUFFER_DEFAULTS, options ?? {})
+    )
   }
 
-  async fetchBuffer(options: Partial<RequestOptions> & Pick<RequestOptions, 'url'>): Promise<Buffer> {
-    return this.fetchInternal((response) => this.extractBuffer(response), merge(this.fetchBufferDefaults, options))
-  }
-
-  async postForm(options: Partial<RequestOptions> & Pick<RequestOptions, 'url'>): Promise<any> {
-    return this.fetchInternal((response) => response.json(), merge(this.postDefaults, options))
+  async postForm(url: string, options?: RequestOptions): Promise<any> {
+    return this.fetchInternal(
+      url,
+      (response) => response.json(),
+      this.completeOptionsWithDefault(POST_DEFAULTS, options ?? {})
+    )
   }
 
   async queryGraph<T = any>(
+    url: string,
     query: string,
     variables: Record<string, any>,
-    options: Partial<RequestOptions> & Pick<RequestOptions, 'url'>
+    options?: RequestOptions
   ): Promise<T> {
     const response = await this.postForm(
+      url,
       Object.assign(
         { body: JSON.stringify({ query, variables }), headers: { 'Content-Type': 'application/json' } },
         options
@@ -48,8 +59,9 @@ export class Fetcher {
   }
 
   private async fetchInternal<T>(
+    url: string,
     responseConsumer: (response: Response) => Promise<T>,
-    options: RequestOptions
+    options: CompleteRequestOptions
   ): Promise<T> {
     return retry(
       async () => {
@@ -59,7 +71,7 @@ export class Fetcher {
         }, ms(options.timeout))
 
         try {
-          const response = await crossFetch(options.url, {
+          const response = await crossFetch(url, {
             signal: controller.signal,
             body: options.body,
             method: options.method,
@@ -69,9 +81,7 @@ export class Fetcher {
             return await responseConsumer(response)
           } else {
             const responseText = await response.text()
-            throw new Error(
-              `Failed to fetch ${options.url}. Got status ${response.status}. Response was '${responseText}'`
-            )
+            throw new Error(`Failed to fetch ${url}. Got status ${response.status}. Response was '${responseText}'`)
           }
         } finally {
           clearTimeout(timeout)
@@ -99,5 +109,12 @@ export class Fetcher {
         resolve(buffer)
       })
     })
+  }
+
+  private completeOptionsWithDefault(
+    methodOptions: CompleteRequestOptions,
+    requestOptions?: RequestOptions
+  ): CompleteRequestOptions {
+    return mergeRequestOptions(mergeRequestOptions(methodOptions, this.customDefaults ?? {}), requestOptions ?? {})
   }
 }

@@ -1,5 +1,6 @@
-export type RequestOptions = {
-  url: string
+export type RequestOptions = Partial<CompleteRequestOptions>
+
+export type CompleteRequestOptions = {
   method: string
   attempts: number // Number of attempts to perform the request
   timeout: string // Time to abort the request. Time format accepted by ms: Examples: '0.5s', '2m', '3h', '100' (assumed to be milliseconds)
