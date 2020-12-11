@@ -27,7 +27,7 @@ export class Fetcher {
     return this.fetchInternal(
       url,
       (response) => this.extractBuffer(response),
-      this.completeOptionsWithDefault(FETCH_BUFFER_DEFAULTS, options ?? {})
+      this.completeOptionsWithDefault(FETCH_BUFFER_DEFAULTS, options)
     )
   }
 
@@ -35,7 +35,7 @@ export class Fetcher {
     return this.fetchInternal(
       url,
       (response) => response.json(),
-      this.completeOptionsWithDefault(POST_DEFAULTS, options ?? {})
+      this.completeOptionsWithDefault(POST_DEFAULTS, options)
     )
   }
 
