@@ -1,4 +1,5 @@
 import ms from 'ms'
+import { CompleteRequestOptions, RequestOptions } from './FetcherConfiguration'
 
 export function delay(time: string): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms(time)))
@@ -33,7 +34,7 @@ export async function retry<T>(
 }
 
 /** Add defaults to missing properties in the partial object */
-export function applyDefaults<T>(defaults: T, partial?: Partial<T>): T {
+export function applyDefaults<T, K = T | Partial<T>>(defaults: K, partial?: Partial<T>): K {
   const complete = Object.assign(defaults, partial)
   return complete
 }
@@ -42,4 +43,18 @@ export function applyDefaults<T>(defaults: T, partial?: Partial<T>): T {
 export function applySomeDefaults<T>(defaults: Partial<T>, partial?: Partial<T>): Partial<T> {
   const complete = Object.assign(defaults, partial)
   return complete
+}
+
+/**  As headers field is Record<string, string> type, then when merging request Options
+     it's needed to merge the array instead of just applying the defaults.           */
+export function mergeRequestOptions<T = CompleteRequestOptions | RequestOptions>(
+  target: T,
+  source?: RequestOptions
+): T {
+  const combinedHeaders: Record<string, string> = {
+    ...(target as RequestOptions).headers,
+    ...source?.headers
+  }
+  const combinedOptions: T = applyDefaults(target, source)
+  return { ...combinedOptions, headers: combinedHeaders }
 }

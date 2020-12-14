@@ -52,7 +52,6 @@
     "cids": "^0.8.0",
     "cross-fetch": "^3.0.5",
     "dcl-crypto": "^2.1.0",
-    "deepmerge": "^4.2.2",
     "eslint": "^7.14.0",
     "eslint-config-prettier": "^6.15.0",
     "eslint-plugin-prettier": "^3.2.0",
