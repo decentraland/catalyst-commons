@@ -75,7 +75,7 @@ describe('Fetcher', () => {
     await assertFetchHasHeader('User-Agent', 'ContentServer/v2')
   }).timeout('10s')
 
-  it('Given a Fetcher with custom defaults headers when configuring a header override then all headers are present', async () => {
+  it('Given a Fetcher with custom defaults headers when configuring another header then both headers are set', async () => {
     await mockServer.get('/mocked-path').thenReply(200, '{"body": "matching body"}')
     const fetcherWithHeadersConfig = new Fetcher({ headers: { 'User-Agent': 'ContentServer/v2' } })
 
@@ -89,7 +89,7 @@ describe('Fetcher', () => {
     await assertFetchHasHeader('another-header', 'another-value')
   }).timeout('10s')
 
-  it('Given a Fetcher with custom defaults headers when overriding the value then it is present', async () => {
+  it('Given a Fetcher with custom defaults headers when overriding the value then the new value is set', async () => {
     await mockServer.get('/mocked-path').thenReply(200, '{"body": "matching body"}')
     const fetcherWithHeadersConfig = new Fetcher({ headers: { 'User-Agent': 'ContentServer/v2' } })
 
@@ -99,6 +99,18 @@ describe('Fetcher', () => {
 
     expect((await fetch).body).to.include('matching body')
     await assertFetchHasHeader('User-Agent', 'another-value')
+  }).timeout('10s')
+
+  it('Given a Fetcher without custom defaults headers when setting a header then it is sent in the request', async () => {
+    await mockServer.get('/mocked-path').thenReply(200, '{"body": "matching body"}')
+    const fetcherWithHeadersConfig = new Fetcher()
+
+    const fetch = fetcherWithHeadersConfig.fetchJson('http://localhost:8080/mocked-path', {
+      headers: { 'User-Agent': 'ContentServer/v2' }
+    })
+
+    expect((await fetch).body).to.include('matching body')
+    await assertFetchHasHeader('User-Agent', 'ContentServer/v2')
   }).timeout('10s')
 })
 

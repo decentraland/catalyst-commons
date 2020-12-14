@@ -46,13 +46,13 @@ export function applySomeDefaults<T>(defaults: Partial<T>, partial?: Partial<T>)
 }
 
 export function mergeRequestOptions<T = CompleteRequestOptions | RequestOptions>(
-  aRequestOption: T,
-  anotherRequestOption: RequestOptions
+  target: T,
+  source?: RequestOptions
 ): T {
   const headers: Record<string, string> = {
-    ...(aRequestOption as RequestOptions).headers,
-    ...anotherRequestOption.headers
+    ...(target as RequestOptions).headers,
+    ...source?.headers
   }
-  const result: T = applyDefaults(aRequestOption, anotherRequestOption)
+  const result: T = applyDefaults(target, source)
   return { ...result, headers }
 }
