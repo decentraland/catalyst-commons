@@ -115,6 +115,6 @@ export class Fetcher {
     methodOptions: CompleteRequestOptions,
     requestOptions?: RequestOptions
   ): CompleteRequestOptions {
-    return mergeRequestOptions(mergeRequestOptions(methodOptions, this.customDefaults ?? {}), requestOptions ?? {})
+    return mergeRequestOptions(mergeRequestOptions(methodOptions, this.customDefaults), requestOptions)
   }
 }

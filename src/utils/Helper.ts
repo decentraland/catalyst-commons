@@ -45,14 +45,16 @@ export function applySomeDefaults<T>(defaults: Partial<T>, partial?: Partial<T>)
   return complete
 }
 
+/**  As headers field is Record<string, string> type, then when merging request Options
+     it's needed to merge the array instead of just applying the defaults.           */
 export function mergeRequestOptions<T = CompleteRequestOptions | RequestOptions>(
   target: T,
   source?: RequestOptions
 ): T {
-  const headers: Record<string, string> = {
+  const combinedHeaders: Record<string, string> = {
     ...(target as RequestOptions).headers,
     ...source?.headers
   }
-  const result: T = applyDefaults(target, source)
-  return { ...result, headers }
+  const combinedOptions: T = applyDefaults(target, source)
+  return { ...combinedOptions, headers: combinedHeaders }
 }
