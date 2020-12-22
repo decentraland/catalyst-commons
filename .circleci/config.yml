@@ -91,10 +91,10 @@ workflows:
           requires:
             - build
       - accept-release:
-        <<: *all_branches_and_tags
-        type: approval
-        requires:
-          - test
+          <<: *all_branches_and_tags
+          type: approval
+          requires:
+            - test
       - release:
           <<: *all_branches_and_tags
           requires:
