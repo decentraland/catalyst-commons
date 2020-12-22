@@ -32,7 +32,6 @@ references:
       tags:
         only: /^\d+\.\d+\.\d(.*)/ # semver
 
-
 jobs:
   build:
     <<: *base_env
@@ -79,7 +78,6 @@ jobs:
           name: Semantic release
           command: npm run semantic-release
 
-
 workflows:
   version: 2
 
@@ -92,8 +90,12 @@ workflows:
           <<: *all_branches_and_tags
           requires:
             - build
-
+      - accept-release:
+        <<: *all_branches_and_tags
+        type: approval
+        requires:
+          - test
       - release:
-          <<: *master_and_tags
+          <<: *all_branches_and_tags
           requires:
-            - test
+            - accept-release
