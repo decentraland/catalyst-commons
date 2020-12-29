@@ -1,9 +1,10 @@
 import ms from 'ms'
 import AbortController from 'abort-controller'
-import crossFetch from 'cross-fetch'
-import blobToBuffer from 'blob-to-buffer'
 import { clearTimeout, setTimeout } from 'timers'
 import { mergeRequestOptions, retry } from './Helper'
+import { Response } from 'express'
+import fetch, { BodyInit } from 'node-fetch'
+import { Response as NodeFetchResponse } from 'node-fetch'
 import {
   CompleteRequestOptions,
   FETCH_BUFFER_DEFAULTS,
@@ -18,7 +19,7 @@ export class Fetcher {
   async fetchJson(url: string, options?: RequestOptions): Promise<any> {
     return this.fetchInternal(
       url,
-      (response) => response.json(),
+      async (response) => response.json(),
       this.completeOptionsWithDefault(FETCH_JSON_DEFAULTS, options)
     )
   }
@@ -26,15 +27,51 @@ export class Fetcher {
   async fetchBuffer(url: string, options?: RequestOptions): Promise<Buffer> {
     return this.fetchInternal(
       url,
-      (response) => this.extractBuffer(response),
+      (response) => response.buffer(),
       this.completeOptionsWithDefault(FETCH_BUFFER_DEFAULTS, options)
     )
+  }
+
+  async fetchPipe(url: string, responseTo: Response, options?: RequestOptions): Promise<void> {
+    return this.fetchInternal(
+      url,
+      (response) => this.copySuccessResponse(response, responseTo),
+      this.completeOptionsWithDefault(FETCH_BUFFER_DEFAULTS, options)
+    )
+  }
+
+  private async copySuccessResponse(responseFrom: NodeFetchResponse, responseTo: Response): Promise<void> {
+    this.copyHeaders(responseFrom, responseTo)
+    responseTo.status(200)
+    responseFrom.body.pipe(responseTo)
+  }
+
+  private KNOWN_HEADERS: string[] = [
+    'Content-Type',
+    'Access-Control-Allow-Origin',
+    'Access-Control-Expose-Headers',
+    'ETag',
+    'Date',
+    'Content-Length',
+    'Cache-Control'
+  ]
+  private fixHeaderNameCase(headerName: string): string | undefined {
+    return this.KNOWN_HEADERS.find((item) => item.toLowerCase() === headerName.toLowerCase())
+  }
+
+  private copyHeaders(responseFrom: NodeFetchResponse, responseTo: Response) {
+    responseFrom.headers.forEach((headerValue, headerName) => {
+      const fixedHeader = this.fixHeaderNameCase(headerName)
+      if (fixedHeader) {
+        responseTo.setHeader(fixedHeader, headerValue)
+      }
+    })
   }
 
   async postForm(url: string, options?: RequestOptions): Promise<any> {
     return this.fetchInternal(
       url,
-      (response) => response.json(),
+      async (response) => response.json(),
       this.completeOptionsWithDefault(POST_DEFAULTS, options)
     )
   }
@@ -60,7 +97,7 @@ export class Fetcher {
 
   private async fetchInternal<T>(
     url: string,
-    responseConsumer: (response: Response) => Promise<T>,
+    responseConsumer: (response: NodeFetchResponse) => Promise<T>,
     options: CompleteRequestOptions
   ): Promise<T> {
     return retry(
@@ -71,10 +108,10 @@ export class Fetcher {
         }, ms(options.timeout))
 
         try {
-          const response = await crossFetch(url, {
+          const response = await fetch(url, {
             signal: controller.signal,
-            body: options.body,
             method: options.method,
+            body: options.body as BodyInit,
             headers: options.headers
           })
           if (response.ok) {
@@ -90,25 +127,6 @@ export class Fetcher {
       options.attempts,
       options.waitTime
     )
-  }
-
-  private async extractBuffer(response: Response): Promise<Buffer> {
-    if ('buffer' in response) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      return response.buffer()
-    }
-    const blob = await response.blob()
-    return this.asyncBlobToBuffer(blob)
-  }
-
-  private asyncBlobToBuffer(blob: Blob): Promise<Buffer> {
-    return new Promise((resolve, reject) => {
-      blobToBuffer(blob, (err: Error, buffer: Buffer) => {
-        if (err) reject(err)
-        resolve(buffer)
-      })
-    })
   }
 
   private completeOptionsWithDefault(
