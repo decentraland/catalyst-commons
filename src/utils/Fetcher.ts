@@ -110,8 +110,8 @@ export class Fetcher {
         try {
           const response = await fetch(url, {
             signal: controller.signal,
-            method: options.method,
             body: options.body as BodyInit,
+            method: options.method,
             headers: options.headers
           })
           if (response.ok) {
