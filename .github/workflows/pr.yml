@@ -2,6 +2,7 @@ on:
   push:
     branches:
       - '!master'
+  pull_request:
 
 name: Publish Dev NPM package
 jobs:
