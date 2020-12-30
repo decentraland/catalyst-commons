@@ -1,5 +1,7 @@
 on:
-  pull_request:
+  push:
+    branches:
+      - '!master'
 
 name: Publish Dev NPM package
 jobs:
