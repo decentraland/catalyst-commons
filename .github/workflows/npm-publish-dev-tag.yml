@@ -1,8 +1,7 @@
 on:
   push:
-    branches:
-      - '!master'
-  pull_request:
+    tags:
+    - '*'
 
 name: Publish Dev NPM package
 jobs:
