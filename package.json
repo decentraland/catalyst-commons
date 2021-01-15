@@ -10,7 +10,6 @@
     "prewatch": "rm -rf dist",
     "watch": "tsc --watch --project tsconfig-build.json",
     "test": "nyc mocha -r ts-node/register -r tsconfig-paths/register --exit \"test/**/*.spec.ts\"",
-    "semantic-release": "semantic-release",
     "commit-msg": "validate-commit-msg",
     "lint:fix": "yarn eslint '**/*.{js,ts,tsx}' --quiet --fix",
     "lint:check": "yarn eslint '**/*.{js,ts,tsx}' --quiet"
@@ -70,7 +69,6 @@
     "mocha": "^5.2.0",
     "mockttp": "^1.0.3",
     "nyc": "^14.1.1",
-    "semantic-release": "^17.2.3",
     "sinon": "^8.1.1",
     "ts-mockito": "^2.6.1",
     "ts-node": "^7.0.1",
