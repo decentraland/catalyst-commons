@@ -3,8 +3,9 @@ import AbortController from 'abort-controller'
 import { clearTimeout, setTimeout } from 'timers'
 import { mergeRequestOptions, retry } from './Helper'
 import { Response } from 'express'
-import fetch, { BodyInit } from 'node-fetch'
-import { Response as NodeFetchResponse } from 'node-fetch'
+import blobToBuffer from 'blob-to-buffer'
+import crossFetch from 'cross-fetch'
+
 import {
   CompleteRequestOptions,
   FETCH_BUFFER_DEFAULTS,
@@ -27,7 +28,7 @@ export class Fetcher {
   async fetchBuffer(url: string, options?: RequestOptions): Promise<Buffer> {
     return this.fetchInternal(
       url,
-      (response) => response.buffer(),
+      (response) => this.extractBuffer(response),
       this.completeOptionsWithDefault(FETCH_BUFFER_DEFAULTS, options)
     )
   }
@@ -40,10 +41,10 @@ export class Fetcher {
     )
   }
 
-  private async copySuccessResponse(responseFrom: NodeFetchResponse, responseTo: Response): Promise<void> {
+  private async copySuccessResponse(responseFrom: globalThis.Response, responseTo: Response): Promise<void> {
     this.copyHeaders(responseFrom, responseTo)
     responseTo.status(200)
-    responseFrom.body.pipe(responseTo)
+    responseFrom.body?.pipeTo((responseTo as unknown) as WritableStream)
   }
 
   private KNOWN_HEADERS: string[] = [
@@ -59,7 +60,7 @@ export class Fetcher {
     return this.KNOWN_HEADERS.find((item) => item.toLowerCase() === headerName.toLowerCase())
   }
 
-  private copyHeaders(responseFrom: NodeFetchResponse, responseTo: Response) {
+  private copyHeaders(responseFrom: globalThis.Response, responseTo: Response) {
     responseFrom.headers.forEach((headerValue, headerName) => {
       const fixedHeader = this.fixHeaderNameCase(headerName)
       if (fixedHeader) {
@@ -97,7 +98,7 @@ export class Fetcher {
 
   private async fetchInternal<T>(
     url: string,
-    responseConsumer: (response: NodeFetchResponse) => Promise<T>,
+    responseConsumer: (response: globalThis.Response) => Promise<T>,
     options: CompleteRequestOptions
   ): Promise<T> {
     return retry(
@@ -108,7 +109,7 @@ export class Fetcher {
         }, ms(options.timeout))
 
         try {
-          const response = await fetch(url, {
+          const response: globalThis.Response = await crossFetch(url, {
             signal: controller.signal,
             body: options.body as BodyInit,
             method: options.method,
@@ -127,6 +128,25 @@ export class Fetcher {
       options.attempts,
       options.waitTime
     )
+  }
+
+  private async extractBuffer(response: globalThis.Response): Promise<Buffer> {
+    if ('buffer' in response) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      return response.buffer()
+    }
+    const blob = await response.blob()
+    return this.asyncBlobToBuffer(blob)
+  }
+
+  private asyncBlobToBuffer(blob: Blob): Promise<Buffer> {
+    return new Promise((resolve, reject) => {
+      blobToBuffer(blob, (err: Error, buffer: Buffer) => {
+        if (err) reject(err)
+        resolve(buffer)
+      })
+    })
   }
 
   private completeOptionsWithDefault(
