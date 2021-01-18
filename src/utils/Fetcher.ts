@@ -20,7 +20,7 @@ export class Fetcher {
   async fetchJson(url: string, options?: RequestOptions): Promise<any> {
     return this.fetchInternal(
       url,
-      async (response) => response.json(),
+      (response) => response.json(),
       this.completeOptionsWithDefault(FETCH_JSON_DEFAULTS, options)
     )
   }
@@ -72,7 +72,7 @@ export class Fetcher {
   async postForm(url: string, options?: RequestOptions): Promise<any> {
     return this.fetchInternal(
       url,
-      async (response) => response.json(),
+      (response) => response.json(),
       this.completeOptionsWithDefault(POST_DEFAULTS, options)
     )
   }
@@ -111,7 +111,7 @@ export class Fetcher {
         try {
           const response: globalThis.Response = await crossFetch(url, {
             signal: controller.signal,
-            body: options.body as BodyInit,
+            body: options.body,
             method: options.method,
             headers: options.headers
           })
