@@ -55,7 +55,7 @@
     "eslint-config-prettier": "^6.15.0",
     "eslint-plugin-prettier": "^3.2.0",
     "ms": "^2.1.2",
-    "multihashing-async": "^0.8.1",
+    "multihashing-async": "^2.1.0",
     "prettier": "^2.2.1"
   },
   "devDependencies": {
