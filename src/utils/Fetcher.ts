@@ -47,7 +47,7 @@ export class Fetcher {
     if (responseFrom.body == null) {
       throw new Error('Error getting body from response')
     } else {
-      responseFrom.body.pipeTo((responseTo as unknown) as WritableStream)
+      ;(responseFrom.body as ReadableStream<Uint8Array>).pipeTo((responseTo as unknown) as WritableStream)
     }
   }
 
