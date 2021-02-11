@@ -47,7 +47,9 @@ export class Fetcher {
     if (responseFrom.body == null) {
       throw new Error('Error getting body from response')
     } else {
-      ;(responseFrom.body as ReadableStream<Uint8Array>).pipeTo((responseTo as unknown) as WritableStream)
+      const bodyFromResponse = responseFrom.body as ReadableStream<Uint8Array>
+      console.log('Body from response: ', bodyFromResponse)
+      bodyFromResponse.pipeTo((responseTo as unknown) as WritableStream)
     }
   }
 
