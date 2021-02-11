@@ -44,7 +44,11 @@ export class Fetcher {
   private async copySuccessResponse(responseFrom: globalThis.Response, responseTo: Response): Promise<void> {
     this.copyHeaders(responseFrom, responseTo)
     responseTo.status(200)
-    responseFrom.body?.pipeTo((responseTo as unknown) as WritableStream)
+    if (responseFrom.body == null) {
+      throw new Error('Error getting body from response')
+    } else {
+      responseFrom.body.pipeTo((responseTo as unknown) as WritableStream)
+    }
   }
 
   private KNOWN_HEADERS: string[] = [
