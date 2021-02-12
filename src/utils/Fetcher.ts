@@ -36,7 +36,7 @@ export class Fetcher {
     url: string,
     responseTo: ReadableStream<Uint8Array>,
     options?: RequestOptions
-  ): Promise<Map<string, string> | undefined> {
+  ): Promise<Map<string, string>> {
     return this.fetchInternal(
       url,
       (response) => this.copyResponse(response, responseTo),
