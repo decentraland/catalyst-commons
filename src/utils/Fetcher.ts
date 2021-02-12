@@ -36,29 +36,12 @@ export class Fetcher {
     url: string,
     responseTo: ReadableStream<Uint8Array>,
     options?: RequestOptions
-  ): Promise<Map<string, string>> {
-    const headers: Map<string, string> = new Map()
-    this.fetchInternal(
+  ): Promise<Map<string, string> | undefined> {
+    return this.fetchInternal(
       url,
-      (response) => this.copySuccessResponse(response, responseTo, headers),
+      (response) => this.copyResponse(response, responseTo),
       this.completeOptionsWithDefault(FETCH_BUFFER_DEFAULTS, options)
     )
-    return headers
-  }
-
-  private async copySuccessResponse(
-    responseFrom: Response,
-    responseTo: ReadableStream<Uint8Array>,
-    headers: Map<string, string>
-  ): Promise<void> {
-    this.copyHeaders(responseFrom, headers)
-    if (responseFrom.body == null) {
-      throw new Error('Error getting body from response')
-    } else {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      responseFrom.body.pipe(responseTo)
-    }
   }
 
   private KNOWN_HEADERS: string[] = [
@@ -70,17 +53,27 @@ export class Fetcher {
     'Content-Length',
     'Cache-Control'
   ]
+
+  private async copyResponse(response: Response, responseTo: ReadableStream<Uint8Array>): Promise<Map<string, string>> {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    response.body.pipe(responseTo)
+    return this.onlyKnownHeaders(response)
+  }
+
   private fixHeaderNameCase(headerName: string): string | undefined {
     return this.KNOWN_HEADERS.find((item) => item.toLowerCase() === headerName.toLowerCase())
   }
 
-  private copyHeaders(responseFrom: Response, headers: Map<string, string>) {
+  private onlyKnownHeaders(responseFrom: Response): Map<string, string> {
+    const headers: Map<string, string> = new Map()
     responseFrom.headers.forEach((headerValue, headerName) => {
       const fixedHeader = this.fixHeaderNameCase(headerName)
       if (fixedHeader) {
         headers.set(fixedHeader, headerValue)
       }
     })
+    return headers
   }
 
   async postForm(url: string, options?: RequestOptions): Promise<any> {
