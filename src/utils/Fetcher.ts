@@ -2,7 +2,6 @@ import ms from 'ms'
 import AbortController from 'abort-controller'
 import { clearTimeout, setTimeout } from 'timers'
 import { mergeRequestOptions, retry } from './Helper'
-import { Response } from 'express'
 import blobToBuffer from 'blob-to-buffer'
 import crossFetch from 'cross-fetch'
 
@@ -33,23 +32,32 @@ export class Fetcher {
     )
   }
 
-  async fetchPipe(url: string, responseTo: Response, options?: RequestOptions): Promise<void> {
-    return this.fetchInternal(
+  async fetchPipe(
+    url: string,
+    responseTo: ReadableStream<Uint8Array>,
+    options?: RequestOptions
+  ): Promise<Map<string, string>> {
+    const headers: Map<string, string> = new Map()
+    this.fetchInternal(
       url,
-      (response) => this.copySuccessResponse(response, responseTo),
+      (response) => this.copySuccessResponse(response, responseTo, headers),
       this.completeOptionsWithDefault(FETCH_BUFFER_DEFAULTS, options)
     )
+    return headers
   }
 
-  private async copySuccessResponse(responseFrom: globalThis.Response, responseTo: Response): Promise<void> {
-    this.copyHeaders(responseFrom, responseTo)
-    responseTo.status(200)
+  private async copySuccessResponse(
+    responseFrom: Response,
+    responseTo: ReadableStream<Uint8Array>,
+    headers: Map<string, string>
+  ): Promise<void> {
+    this.copyHeaders(responseFrom, headers)
     if (responseFrom.body == null) {
       throw new Error('Error getting body from response')
     } else {
-      const bodyFromResponse = responseFrom.body as ReadableStream<Uint8Array>
-      console.log('Body from response: ', bodyFromResponse)
-      bodyFromResponse.pipeTo((responseTo as unknown) as WritableStream)
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      responseFrom.body.pipe(responseTo)
     }
   }
 
@@ -66,11 +74,11 @@ export class Fetcher {
     return this.KNOWN_HEADERS.find((item) => item.toLowerCase() === headerName.toLowerCase())
   }
 
-  private copyHeaders(responseFrom: globalThis.Response, responseTo: Response) {
+  private copyHeaders(responseFrom: Response, headers: Map<string, string>) {
     responseFrom.headers.forEach((headerValue, headerName) => {
       const fixedHeader = this.fixHeaderNameCase(headerName)
       if (fixedHeader) {
-        responseTo.setHeader(fixedHeader, headerValue)
+        headers.set(fixedHeader, headerValue)
       }
     })
   }
@@ -104,7 +112,7 @@ export class Fetcher {
 
   private async fetchInternal<T>(
     url: string,
-    responseConsumer: (response: globalThis.Response) => Promise<T>,
+    responseConsumer: (response: Response) => Promise<T>,
     options: CompleteRequestOptions
   ): Promise<T> {
     return retry(
@@ -115,7 +123,7 @@ export class Fetcher {
         }, ms(options.timeout))
 
         try {
-          const response: globalThis.Response = await crossFetch(url, {
+          const response: Response = await crossFetch(url, {
             signal: controller.signal,
             body: options.body,
             method: options.method,
@@ -136,7 +144,7 @@ export class Fetcher {
     )
   }
 
-  private async extractBuffer(response: globalThis.Response): Promise<Buffer> {
+  private async extractBuffer(response: Response): Promise<Buffer> {
     if ('buffer' in response) {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
