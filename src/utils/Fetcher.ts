@@ -34,12 +34,12 @@ export class Fetcher {
 
   async fetchPipe(
     url: string,
-    responseTo: ReadableStream<Uint8Array>,
+    writeTo: ReadableStream<Uint8Array>,
     options?: RequestOptions
   ): Promise<Map<string, string>> {
     return this.fetchInternal(
       url,
-      (response) => this.copyResponse(response, responseTo),
+      (response) => this.copyResponse(response, writeTo),
       this.completeOptionsWithDefault(FETCH_BUFFER_DEFAULTS, options)
     )
   }
@@ -54,10 +54,11 @@ export class Fetcher {
     'Cache-Control'
   ]
 
-  private async copyResponse(response: Response, responseTo: ReadableStream<Uint8Array>): Promise<Map<string, string>> {
+  private async copyResponse(response: Response, writeTo: ReadableStream<Uint8Array>): Promise<Map<string, string>> {
+    // The method pipeTo() is not working, so we need to use pipe() which is the one implemented
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    response.body.pipe(responseTo)
+    response.body.pipe(writeTo)
     return this.onlyKnownHeaders(response)
   }
 
