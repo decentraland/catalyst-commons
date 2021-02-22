@@ -1,9 +1,10 @@
 import ms from 'ms'
 import AbortController from 'abort-controller'
-import crossFetch from 'cross-fetch'
-import blobToBuffer from 'blob-to-buffer'
 import { clearTimeout, setTimeout } from 'timers'
 import { mergeRequestOptions, retry } from './Helper'
+import blobToBuffer from 'blob-to-buffer'
+import crossFetch from 'cross-fetch'
+
 import {
   CompleteRequestOptions,
   FETCH_BUFFER_DEFAULTS,
@@ -29,6 +30,29 @@ export class Fetcher {
       (response) => this.extractBuffer(response),
       this.completeOptionsWithDefault(FETCH_BUFFER_DEFAULTS, options)
     )
+  }
+
+  /**
+   * Fetches the url and pipes the response obtained from the upstream to the `writeTo` Stream and
+   *  returns the headers from the upstream request.
+   * @param url to request
+   * @param writeTo the stream to pipe the response to
+   * @param options config for the request
+   */
+  async fetchPipe(url: string, writeTo: ReadableStream<Uint8Array>, options?: RequestOptions): Promise<Headers> {
+    return this.fetchInternal(
+      url,
+      (response) => this.copyResponse(response, writeTo),
+      this.completeOptionsWithDefault(FETCH_BUFFER_DEFAULTS, options)
+    )
+  }
+
+  private async copyResponse(response: Response, writeTo: ReadableStream<Uint8Array>): Promise<Headers> {
+    // The method pipeTo() is not working, so we need to use pipe() which is the one implemented
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    response.body.pipe(writeTo)
+    return response.headers
   }
 
   async postForm(url: string, options?: RequestOptions): Promise<any> {
@@ -71,7 +95,7 @@ export class Fetcher {
         }, ms(options.timeout))
 
         try {
-          const response = await crossFetch(url, {
+          const response: Response = await crossFetch(url, {
             signal: controller.signal,
             body: options.body,
             method: options.method,
