@@ -32,11 +32,14 @@ export class Fetcher {
     )
   }
 
-  async fetchPipe(
-    url: string,
-    writeTo: ReadableStream<Uint8Array>,
-    options?: RequestOptions
-  ): Promise<Map<string, string>> {
+  /**
+   * Fetches the url and pipes the response obtained from the upstream to the `writeTo` Stream and
+   *  returns the headers from the upstream request.
+   * @param url to request
+   * @param writeTo the stream to pipe the response to
+   * @param options config for the request
+   */
+  async fetchPipe(url: string, writeTo: ReadableStream<Uint8Array>, options?: RequestOptions): Promise<Headers> {
     return this.fetchInternal(
       url,
       (response) => this.copyResponse(response, writeTo),
@@ -44,37 +47,12 @@ export class Fetcher {
     )
   }
 
-  private KNOWN_HEADERS: string[] = [
-    'Content-Type',
-    'Access-Control-Allow-Origin',
-    'Access-Control-Expose-Headers',
-    'ETag',
-    'Date',
-    'Content-Length',
-    'Cache-Control'
-  ]
-
-  private async copyResponse(response: Response, writeTo: ReadableStream<Uint8Array>): Promise<Map<string, string>> {
+  private async copyResponse(response: Response, writeTo: ReadableStream<Uint8Array>): Promise<Headers> {
     // The method pipeTo() is not working, so we need to use pipe() which is the one implemented
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     response.body.pipe(writeTo)
-    return this.onlyKnownHeaders(response)
-  }
-
-  private fixHeaderNameCase(headerName: string): string | undefined {
-    return this.KNOWN_HEADERS.find((item) => item.toLowerCase() === headerName.toLowerCase())
-  }
-
-  private onlyKnownHeaders(responseFrom: Response): Map<string, string> {
-    const headers: Map<string, string> = new Map()
-    responseFrom.headers.forEach((headerValue, headerName) => {
-      const fixedHeader = this.fixHeaderNameCase(headerName)
-      if (fixedHeader) {
-        headers.set(fixedHeader, headerValue)
-      }
-    })
-    return headers
+    return response.headers
   }
 
   async postForm(url: string, options?: RequestOptions): Promise<any> {

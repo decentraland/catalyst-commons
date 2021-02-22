@@ -2,7 +2,6 @@ import chai from 'chai'
 import mockttp = require('mockttp')
 import chaiAsPromised from 'chai-as-promised'
 import { delay, Fetcher } from 'utils'
-import { instance, mock } from 'ts-mockito'
 
 chai.use(chaiAsPromised)
 const expect = chai.expect
@@ -113,42 +112,6 @@ describe('Fetcher', () => {
     expect((await fetch).body).to.include('matching body')
     await assertFetchHasHeader('User-Agent', 'ContentServer/v2')
   }).timeout('10s')
-
-  it('When a fetch is piped without headers then none is returned', async () => {
-    await mockServer.get('/mocked-path').thenReply(200, '{"body": "matching body"}', {})
-    const mockedResponse = mock<ReadableStream>()
-
-    const headers: Map<string, string> = await new Fetcher().fetchPipe(
-      'http://localhost:8080/mocked-path',
-      instance(mockedResponse)
-    )
-    expect(headers).to.be.empty
-  }).timeout('15s')
-
-  it('When a fetch is piped with a non recognized header then none is returned', async () => {
-    await mockServer.get('/mocked-path').thenReply(200, '{"body": "matching body"}', { invalid: 'val' })
-    const mockedResponse = mock<ReadableStream>()
-
-    const headers: Map<string, string> = await new Fetcher().fetchPipe(
-      'http://localhost:8080/mocked-path',
-      instance(mockedResponse)
-    )
-    expect(headers).to.be.empty
-  }).timeout('15s')
-
-  it('When a fetch is piped then only sanitized headers of the response are returned', async () => {
-    await mockServer
-      .get('/mocked-path')
-      .thenReply(200, '{"body": "matching body"}', { 'content-length': '200', another: 'val' })
-    const mockedResponse = mock<ReadableStream>()
-
-    const headers: Map<string, string> = await new Fetcher().fetchPipe(
-      'http://localhost:8080/mocked-path',
-      instance(mockedResponse)
-    )
-
-    expect(headers.has('Content-Length'))
-  }).timeout('15s')
 })
 
 async function assertFetchHasHeader(headerKey: string, headerValue: string) {
