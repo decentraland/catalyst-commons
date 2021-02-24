@@ -14,7 +14,11 @@ import {
 } from './FetcherConfiguration'
 
 export class Fetcher {
-  constructor(private readonly customDefaults?: Omit<RequestOptions, 'body'>) {}
+  private readonly customDefaults: Omit<RequestOptions, 'body'>
+
+  constructor(customDefaults?: Omit<RequestOptions, 'body'>) {
+    this.customDefaults = customDefaults ?? {}
+  }
 
   fetchJson(url: string, options?: RequestOptions): Promise<any> {
     return fetchJson(url, mergeRequestOptions(this.customDefaults, options))

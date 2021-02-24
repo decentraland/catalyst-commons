@@ -55,6 +55,6 @@ export function mergeRequestOptions<T = CompleteRequestOptions | RequestOptions>
     ...(target as RequestOptions)?.headers,
     ...source?.headers
   }
-  const combinedOptions: T = applyDefaults(target ?? ({} as T), source)
+  const combinedOptions: T = applyDefaults(target, source)
   return { ...combinedOptions, headers: combinedHeaders }
 }
