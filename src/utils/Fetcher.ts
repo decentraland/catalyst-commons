@@ -88,7 +88,7 @@ async function copyResponse(response: Response, writeTo: ReadableStream<Uint8Arr
   return response.headers
 }
 
-async function postForm(url: string, options?: RequestOptions): Promise<any> {
+export async function postForm(url: string, options?: RequestOptions): Promise<any> {
   return fetchInternal(url, response => response.json(), mergeRequestOptions(POST_DEFAULTS, options))
 }
 
