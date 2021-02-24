@@ -16,20 +16,12 @@ import {
 export class Fetcher {
   constructor(private readonly customDefaults?: Omit<RequestOptions, 'body'>) {}
 
-  async fetchJson(url: string, options?: RequestOptions): Promise<any> {
-    return this.fetchInternal(
-      url,
-      (response) => response.json(),
-      this.completeOptionsWithDefault(FETCH_JSON_DEFAULTS, options)
-    )
+  fetchJson(url: string, options?: RequestOptions): Promise<any> {
+    return fetchJson(url, mergeRequestOptions(this.customDefaults, options))
   }
 
-  async fetchBuffer(url: string, options?: RequestOptions): Promise<Buffer> {
-    return this.fetchInternal(
-      url,
-      (response) => this.extractBuffer(response),
-      this.completeOptionsWithDefault(FETCH_BUFFER_DEFAULTS, options)
-    )
+  fetchBuffer(url: string, options?: RequestOptions): Promise<Buffer> {
+    return fetchBuffer(url, mergeRequestOptions(this.customDefaults, options))
   }
 
   /**
@@ -39,106 +31,131 @@ export class Fetcher {
    * @param writeTo the stream to pipe the response to
    * @param options config for the request
    */
-  async fetchPipe(url: string, writeTo: ReadableStream<Uint8Array>, options?: RequestOptions): Promise<Headers> {
-    return this.fetchInternal(
-      url,
-      (response) => this.copyResponse(response, writeTo),
-      this.completeOptionsWithDefault(FETCH_BUFFER_DEFAULTS, options)
-    )
+  fetchPipe(url: string, writeTo: ReadableStream<Uint8Array>, options?: RequestOptions): Promise<Headers> {
+    return fetchPipe(url, writeTo, mergeRequestOptions(this.customDefaults, options))
   }
 
-  private async copyResponse(response: Response, writeTo: ReadableStream<Uint8Array>): Promise<Headers> {
-    // The method pipeTo() is not working, so we need to use pipe() which is the one implemented
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    response.body.pipe(writeTo)
-    return response.headers
+  postForm(url: string, options?: RequestOptions): Promise<any> {
+    return postForm(url, mergeRequestOptions(this.customDefaults, options))
   }
 
-  async postForm(url: string, options?: RequestOptions): Promise<any> {
-    return this.fetchInternal(
-      url,
-      (response) => response.json(),
-      this.completeOptionsWithDefault(POST_DEFAULTS, options)
-    )
-  }
-
-  async queryGraph<T = any>(
+  queryGraph<T = any>(
     url: string,
     query: string,
     variables: Record<string, any>,
     options?: RequestOptions
   ): Promise<T> {
-    const response = await this.postForm(
-      url,
-      Object.assign(
-        { body: JSON.stringify({ query, variables }), headers: { 'Content-Type': 'application/json' } },
-        options
-      )
-    )
-    if (response.errors) {
-      throw new Error(`Error querying graph. Reasons: ${JSON.stringify(response.errors)}`)
-    }
-    return response.data
+    return queryGraph(url, query, variables, mergeRequestOptions(this.customDefaults, options))
   }
+}
 
-  private async fetchInternal<T>(
-    url: string,
-    responseConsumer: (response: Response) => Promise<T>,
-    options: CompleteRequestOptions
-  ): Promise<T> {
-    return retry(
-      async () => {
-        const controller = new AbortController()
-        const timeout = setTimeout(() => {
-          controller.abort()
-        }, ms(options.timeout))
+export async function fetchJson(url: string, options?: RequestOptions): Promise<any> {
+  return fetchInternal(url, response => response.json(), mergeRequestOptions(FETCH_JSON_DEFAULTS, options))
+}
 
-        try {
-          const response: Response = await crossFetch(url, {
-            signal: controller.signal,
-            body: options.body,
-            method: options.method,
-            headers: options.headers
-          })
-          if (response.ok) {
-            return await responseConsumer(response)
-          } else {
-            const responseText = await response.text()
-            throw new Error(`Failed to fetch ${url}. Got status ${response.status}. Response was '${responseText}'`)
-          }
-        } finally {
-          clearTimeout(timeout)
+export async function fetchBuffer(url: string, options?: RequestOptions): Promise<Buffer> {
+  return fetchInternal(url, response => extractBuffer(response), mergeRequestOptions(FETCH_BUFFER_DEFAULTS, options))
+}
+
+/**
+ * Fetches the url and pipes the response obtained from the upstream to the `writeTo` Stream and
+ *  returns the headers from the upstream request.
+ * @param url to request
+ * @param writeTo the stream to pipe the response to
+ * @param options config for the request
+ */
+export async function fetchPipe(
+  url: string,
+  writeTo: ReadableStream<Uint8Array>,
+  options?: RequestOptions
+): Promise<Headers> {
+  return fetchInternal(
+    url,
+    response => copyResponse(response, writeTo),
+    mergeRequestOptions(FETCH_BUFFER_DEFAULTS, options)
+  )
+}
+
+async function copyResponse(response: Response, writeTo: ReadableStream<Uint8Array>): Promise<Headers> {
+  // The method pipeTo() is not working, so we need to use pipe() which is the one implemented
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  response.body.pipe(writeTo)
+  return response.headers
+}
+
+async function postForm(url: string, options?: RequestOptions): Promise<any> {
+  return fetchInternal(url, response => response.json(), mergeRequestOptions(POST_DEFAULTS, options))
+}
+
+export async function queryGraph<T = any>(
+  url: string,
+  query: string,
+  variables: Record<string, any>,
+  options?: RequestOptions
+): Promise<T> {
+  const response = await postForm(
+    url,
+    Object.assign(
+      { body: JSON.stringify({ query, variables }), headers: { 'Content-Type': 'application/json' } },
+      options
+    )
+  )
+  if (response.errors) {
+    throw new Error(`Error querying graph. Reasons: ${JSON.stringify(response.errors)}`)
+  }
+  return response.data
+}
+
+async function fetchInternal<T>(
+  url: string,
+  responseConsumer: (response: Response) => Promise<T>,
+  options: CompleteRequestOptions
+): Promise<T> {
+  return retry(
+    async () => {
+      const controller = new AbortController()
+      const timeout = setTimeout(() => {
+        controller.abort()
+      }, ms(options.timeout))
+
+      try {
+        const response: Response = await crossFetch(url, {
+          signal: controller.signal,
+          body: options.body,
+          method: options.method,
+          headers: options.headers
+        })
+        if (response.ok) {
+          return await responseConsumer(response)
+        } else {
+          const responseText = await response.text()
+          throw new Error(`Failed to fetch ${url}. Got status ${response.status}. Response was '${responseText}'`)
         }
-      },
-      options.attempts,
-      options.waitTime
-    )
-  }
+      } finally {
+        clearTimeout(timeout)
+      }
+    },
+    options.attempts,
+    options.waitTime
+  )
+}
 
-  private async extractBuffer(response: Response): Promise<Buffer> {
-    if ('buffer' in response) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      return response.buffer()
-    }
-    const blob = await response.blob()
-    return this.asyncBlobToBuffer(blob)
+async function extractBuffer(response: Response): Promise<Buffer> {
+  if ('buffer' in response) {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    return response.buffer()
   }
+  const blob = await response.blob()
+  return asyncBlobToBuffer(blob)
+}
 
-  private asyncBlobToBuffer(blob: Blob): Promise<Buffer> {
-    return new Promise((resolve, reject) => {
-      blobToBuffer(blob, (err: Error, buffer: Buffer) => {
-        if (err) reject(err)
-        resolve(buffer)
-      })
+function asyncBlobToBuffer(blob: Blob): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    blobToBuffer(blob, (err: Error, buffer: Buffer) => {
+      if (err) reject(err)
+      resolve(buffer)
     })
-  }
-
-  private completeOptionsWithDefault(
-    methodOptions: CompleteRequestOptions,
-    requestOptions?: RequestOptions
-  ): CompleteRequestOptions {
-    return mergeRequestOptions(mergeRequestOptions(methodOptions, this.customDefaults), requestOptions)
-  }
+  })
 }
