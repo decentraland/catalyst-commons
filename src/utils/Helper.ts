@@ -2,7 +2,7 @@ import ms from 'ms'
 import { CompleteRequestOptions, RequestOptions } from './FetcherConfiguration'
 
 export function delay(time: string): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms(time)))
+  return new Promise(resolve => setTimeout(resolve, ms(time)))
 }
 
 export async function retry<T>(
@@ -52,9 +52,9 @@ export function mergeRequestOptions<T = CompleteRequestOptions | RequestOptions>
   source?: RequestOptions
 ): T {
   const combinedHeaders: Record<string, string> = {
-    ...(target as RequestOptions).headers,
+    ...(target as RequestOptions)?.headers,
     ...source?.headers
   }
-  const combinedOptions: T = applyDefaults(target, source)
+  const combinedOptions: T = applyDefaults(target ?? ({} as T), source)
   return { ...combinedOptions, headers: combinedHeaders }
 }
