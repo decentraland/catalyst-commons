@@ -2,11 +2,11 @@ import { CatalystData, DAOContract } from '../contracts/CatalystContract'
 import { EthAddress } from 'dcl-crypto'
 import { EthNetwork } from '../contracts/utils'
 
-export function getMainnetServers(): Promise<ServerMetadata[]> {
+export function getMainnetCatalysts(): Promise<ServerMetadata[]> {
   return getServersFromNetwork('mainnet')
 }
 
-export function getRopstenServers(): Promise<ServerMetadata[]> {
+export function getRopstenCatalysts(): Promise<ServerMetadata[]> {
   return getServersFromNetwork('ropsten')
 }
 
