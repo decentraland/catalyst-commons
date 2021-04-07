@@ -57,6 +57,8 @@ export type PartialDeploymentHistory<T extends DeploymentBase> = {
     offset: number
     limit: number
     moreData: boolean
+    lastEntityId?: string
+    next?: string
   }
 }
 
@@ -68,6 +70,7 @@ export type DeploymentFilters = {
   entityIds?: EntityId[]
   pointers?: Pointer[]
   onlyCurrentlyPointed?: boolean
+  lastEntityId?: string
 }
 
 export type DeploymentSorting = {
@@ -155,5 +158,7 @@ export type LegacyPartialDeploymentHistory = {
     offset: number
     limit: number
     moreData: boolean
+    lastEntityId?: string
+    next?: string
   }
 }
