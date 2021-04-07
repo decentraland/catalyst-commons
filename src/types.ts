@@ -57,7 +57,6 @@ export type PartialDeploymentHistory<T extends DeploymentBase> = {
     offset: number
     limit: number
     moreData: boolean
-    lastEntityId?: string
     next?: string
   }
 }
@@ -65,6 +64,8 @@ export type PartialDeploymentHistory<T extends DeploymentBase> = {
 export type DeploymentFilters = {
   fromLocalTimestamp?: Timestamp
   toLocalTimestamp?: Timestamp
+  fromEntityTimestamp?: Timestamp
+  toEntityTimestamp?: Timestamp
   deployedBy?: EthAddress[]
   entityTypes?: EntityType[]
   entityIds?: EntityId[]
@@ -158,7 +159,6 @@ export type LegacyPartialDeploymentHistory = {
     offset: number
     limit: number
     moreData: boolean
-    lastEntityId?: string
     next?: string
   }
 }
