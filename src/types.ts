@@ -72,7 +72,6 @@ export type DeploymentFilters = {
   entityIds?: EntityId[]
   pointers?: Pointer[]
   onlyCurrentlyPointed?: boolean
-  lastEntityId?: string
 }
 
 export type DeploymentSorting = {
