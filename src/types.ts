@@ -58,7 +58,7 @@ export type PartialDeploymentHistory<T extends DeploymentBase> = {
     limit: number
     moreData: boolean
     next?: string
-    lastEntityId?: string
+    lastId?: string
   }
 }
 
