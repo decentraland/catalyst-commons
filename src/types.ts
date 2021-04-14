@@ -63,8 +63,6 @@ export type PartialDeploymentHistory<T extends DeploymentBase> = {
 }
 
 export type DeploymentFilters = {
-  fromLocalTimestamp?: Timestamp // deprecated
-  toLocalTimestamp?: Timestamp // deprecated
   from?: Timestamp
   to?: Timestamp
   deployedBy?: EthAddress[]
