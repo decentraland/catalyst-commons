@@ -57,12 +57,14 @@ export type PartialDeploymentHistory<T extends DeploymentBase> = {
     offset: number
     limit: number
     moreData: boolean
+    next?: string
+    lastId?: string
   }
 }
 
 export type DeploymentFilters = {
-  fromLocalTimestamp?: Timestamp
-  toLocalTimestamp?: Timestamp
+  from?: Timestamp
+  to?: Timestamp
   deployedBy?: EthAddress[]
   entityTypes?: EntityType[]
   entityIds?: EntityId[]
@@ -117,6 +119,8 @@ export type AuditInfo = {
   denylistedContent?: ContentFileHash[]
 }
 
+export type Profile = EntityMetadata
+
 export type LegacyAuditInfo = {
   version: EntityVersion
   deployedTimestamp: Timestamp
@@ -128,32 +132,5 @@ export type LegacyAuditInfo = {
     // This is used for migrations
     originalVersion: EntityVersion
     data: any
-  }
-}
-
-export type Profile = EntityMetadata
-
-export type LegacyDeploymentEvent = {
-  /** The server where the user uploaded the entity */
-  serverName: ServerName
-  entityType: EntityType
-  entityId: EntityId
-  /** The moment when the server validated and stored the entity */
-  timestamp: Timestamp
-}
-
-export type LegacyDeploymentHistory = LegacyDeploymentEvent[]
-
-export type LegacyPartialDeploymentHistory = {
-  events: LegacyDeploymentEvent[]
-  filters: {
-    from?: Timestamp
-    to?: Timestamp
-    serverName?: ServerName
-  }
-  pagination: {
-    offset: number
-    limit: number
-    moreData: boolean
   }
 }
