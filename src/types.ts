@@ -134,3 +134,9 @@ export type LegacyAuditInfo = {
     data: any
   }
 }
+
+export enum HealthStatus {
+  HEALTHY = 'Healthy',
+  UNHEALTHY = 'Unhealthy',
+  DOWN = 'Down'
+}
