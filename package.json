@@ -67,7 +67,7 @@
     "chai-as-promised": "^7.1.1",
     "husky": "^5.0.9",
     "mocha": "^8.2.1",
-    "mockttp": "^1.0.3",
+    "mockttp": "^2.0.1",
     "nyc": "^15.1.0",
     "sinon": "^9.2.4",
     "ts-mockito": "^2.6.1",
