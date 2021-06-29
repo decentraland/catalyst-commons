@@ -9,15 +9,20 @@ import {
   CompleteRequestOptions,
   FETCH_BUFFER_DEFAULTS,
   FETCH_JSON_DEFAULTS,
+  getAllHeaders,
   POST_DEFAULTS,
   RequestOptions
 } from './FetcherConfiguration'
 
 export class Fetcher {
-  private readonly customDefaults: Omit<RequestOptions, 'body'>
+  private customDefaults: Omit<RequestOptions, 'body'>
 
   constructor(customDefaults?: Omit<RequestOptions, 'body'>) {
     this.customDefaults = customDefaults ?? {}
+  }
+
+  overrideDefaults(overrideDefaults: Omit<RequestOptions, 'body'>): void {
+    this.customDefaults = mergeRequestOptions(this.customDefaults, overrideDefaults)
   }
 
   fetchJson(url: string, options?: RequestOptions): Promise<any> {
@@ -54,11 +59,11 @@ export class Fetcher {
 }
 
 export async function fetchJson(url: string, options?: RequestOptions): Promise<any> {
-  return fetchInternal(url, response => response.json(), mergeRequestOptions(FETCH_JSON_DEFAULTS, options))
+  return fetchInternal(url, (response) => response.json(), mergeRequestOptions(FETCH_JSON_DEFAULTS, options))
 }
 
 export async function fetchBuffer(url: string, options?: RequestOptions): Promise<Buffer> {
-  return fetchInternal(url, response => extractBuffer(response), mergeRequestOptions(FETCH_BUFFER_DEFAULTS, options))
+  return fetchInternal(url, (response) => extractBuffer(response), mergeRequestOptions(FETCH_BUFFER_DEFAULTS, options))
 }
 
 /**
@@ -75,7 +80,7 @@ export async function fetchPipe(
 ): Promise<Headers> {
   return fetchInternal(
     url,
-    response => copyResponse(response, writeTo),
+    (response) => copyResponse(response, writeTo),
     mergeRequestOptions(FETCH_BUFFER_DEFAULTS, options)
   )
 }
@@ -89,7 +94,7 @@ async function copyResponse(response: Response, writeTo: ReadableStream<Uint8Arr
 }
 
 export async function postForm(url: string, options?: RequestOptions): Promise<any> {
-  return fetchInternal(url, response => response.json(), mergeRequestOptions(POST_DEFAULTS, options))
+  return fetchInternal(url, (response) => response.json(), mergeRequestOptions(POST_DEFAULTS, options))
 }
 
 export async function queryGraph<T = any>(
@@ -128,7 +133,7 @@ async function fetchInternal<T>(
           signal: controller.signal,
           body: options.body,
           method: options.method,
-          headers: options.headers
+          headers: getAllHeaders(options)
         })
         if (response.ok) {
           return await responseConsumer(response)

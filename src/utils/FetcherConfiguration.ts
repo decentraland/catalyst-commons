@@ -7,6 +7,17 @@ export type CompleteRequestOptions = {
   waitTime: string // Time to wait between attempts. Time format accepted by ms: Examples: '0.5s', '2m', '3h', '100' (assumed to be milliseconds)
   body?: FormData | string
   headers?: Record<string, string>
+  cookies?: Record<string, string>
+}
+
+export function getAllHeaders(options: CompleteRequestOptions): Record<string, string> {
+  const headers = options.headers || {}
+  if (options.cookies && Object.entries(options.cookies).length > 0) {
+    headers['Set-Cookie'] = Object.entries(options.cookies)
+      .map((entry) => `${entry[0]}=${entry[1]}`)
+      .reduce((a, b) => `${a}; ${b}`)
+  }
+  return headers
 }
 
 export const FETCHER_DEFAULTS = {

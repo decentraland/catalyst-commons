@@ -7,9 +7,9 @@ chai.use(chaiAsPromised)
 const expect = chai.expect
 
 describe('EntityFactory', () => {
-
-    it('When an entity is built with no pointers, then an exception is thrown', () => {
-        expect(buildEntityAndFile(EntityType.PROFILE, [], 20)).to.be.rejectedWith(`All entities must have at least one pointer.`)
-    })
-
+  it('When an entity is built with no pointers, then an exception is thrown', () => {
+    expect(buildEntityAndFile(EntityType.PROFILE, [], 20)).to.be.rejectedWith(
+      `All entities must have at least one pointer.`
+    )
+  })
 })
