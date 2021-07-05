@@ -16,6 +16,7 @@ import {
 
 export class Fetcher {
   private customDefaults: Omit<RequestOptions, 'body'>
+  private setImmediate: ((response: Response) => Promise<void>) | undefined = undefined
 
   constructor(customDefaults?: Omit<RequestOptions, 'body'>) {
     this.customDefaults = customDefaults ?? {}
@@ -25,12 +26,20 @@ export class Fetcher {
     this.customDefaults = mergeRequestOptions(this.customDefaults, overrideDefaults)
   }
 
+  /** Configure a lambda to run in another thread if the response was okay.
+   * This is used when you need to configure something of the fetcher according to the response obtained
+   * but you don't want to block the request.
+   */
+  overrideSetImmediate(setImmediate: (response: Response) => Promise<void>): void {
+    this.setImmediate = setImmediate
+  }
+
   fetchJson(url: string, options?: RequestOptions): Promise<any> {
-    return fetchJson(url, mergeRequestOptions(this.customDefaults, options))
+    return fetchJson(url, mergeRequestOptions(this.customDefaults, options), this.setImmediate)
   }
 
   fetchBuffer(url: string, options?: RequestOptions): Promise<Buffer> {
-    return fetchBuffer(url, mergeRequestOptions(this.customDefaults, options))
+    return fetchBuffer(url, mergeRequestOptions(this.customDefaults, options), this.setImmediate)
   }
 
   /**
@@ -41,11 +50,11 @@ export class Fetcher {
    * @param options config for the request
    */
   fetchPipe(url: string, writeTo: ReadableStream<Uint8Array>, options?: RequestOptions): Promise<Headers> {
-    return fetchPipe(url, writeTo, mergeRequestOptions(this.customDefaults, options))
+    return fetchPipe(url, writeTo, mergeRequestOptions(this.customDefaults, options), this.setImmediate)
   }
 
   postForm(url: string, options?: RequestOptions): Promise<any> {
-    return postForm(url, mergeRequestOptions(this.customDefaults, options))
+    return postForm(url, mergeRequestOptions(this.customDefaults, options), this.setImmediate)
   }
 
   queryGraph<T = any>(
@@ -54,16 +63,34 @@ export class Fetcher {
     variables: Record<string, any>,
     options?: RequestOptions
   ): Promise<T> {
-    return queryGraph(url, query, variables, mergeRequestOptions(this.customDefaults, options))
+    return queryGraph(url, query, variables, mergeRequestOptions(this.customDefaults, options), this.setImmediate)
   }
 }
 
-export async function fetchJson(url: string, options?: RequestOptions): Promise<any> {
-  return fetchInternal(url, (response) => response.json(), mergeRequestOptions(FETCH_JSON_DEFAULTS, options))
+export async function fetchJson(
+  url: string,
+  options?: RequestOptions,
+  setImmediate?: (response: Response) => Promise<void>
+): Promise<any> {
+  return fetchInternal(
+    url,
+    (response) => response.json(),
+    mergeRequestOptions(FETCH_JSON_DEFAULTS, options),
+    setImmediate
+  )
 }
 
-export async function fetchBuffer(url: string, options?: RequestOptions): Promise<Buffer> {
-  return fetchInternal(url, (response) => extractBuffer(response), mergeRequestOptions(FETCH_BUFFER_DEFAULTS, options))
+export async function fetchBuffer(
+  url: string,
+  options?: RequestOptions,
+  setImmediate?: (response: Response) => Promise<void>
+): Promise<Buffer> {
+  return fetchInternal(
+    url,
+    (response) => extractBuffer(response),
+    mergeRequestOptions(FETCH_BUFFER_DEFAULTS, options),
+    setImmediate
+  )
 }
 
 /**
@@ -76,12 +103,14 @@ export async function fetchBuffer(url: string, options?: RequestOptions): Promis
 export async function fetchPipe(
   url: string,
   writeTo: ReadableStream<Uint8Array>,
-  options?: RequestOptions
+  options?: RequestOptions,
+  setImmediate?: (response: Response) => Promise<void>
 ): Promise<Headers> {
   return fetchInternal(
     url,
     (response) => copyResponse(response, writeTo),
-    mergeRequestOptions(FETCH_BUFFER_DEFAULTS, options)
+    mergeRequestOptions(FETCH_BUFFER_DEFAULTS, options),
+    setImmediate
   )
 }
 
@@ -93,22 +122,28 @@ async function copyResponse(response: Response, writeTo: ReadableStream<Uint8Arr
   return response.headers
 }
 
-export async function postForm(url: string, options?: RequestOptions): Promise<any> {
-  return fetchInternal(url, (response) => response.json(), mergeRequestOptions(POST_DEFAULTS, options))
+export async function postForm(
+  url: string,
+  options?: RequestOptions,
+  setImmediate?: (response: Response) => Promise<void>
+): Promise<any> {
+  return fetchInternal(url, (response) => response.json(), mergeRequestOptions(POST_DEFAULTS, options), setImmediate)
 }
 
 export async function queryGraph<T = any>(
   url: string,
   query: string,
   variables: Record<string, any>,
-  options?: RequestOptions
+  options?: RequestOptions,
+  setImmediate?: (response: Response) => Promise<void>
 ): Promise<T> {
   const response = await postForm(
     url,
     Object.assign(
       { body: JSON.stringify({ query, variables }), headers: { 'Content-Type': 'application/json' } },
       options
-    )
+    ),
+    setImmediate
   )
   if (response.errors) {
     throw new Error(`Error querying graph. Reasons: ${JSON.stringify(response.errors)}`)
@@ -119,7 +154,8 @@ export async function queryGraph<T = any>(
 async function fetchInternal<T>(
   url: string,
   responseConsumer: (response: Response) => Promise<T>,
-  options: CompleteRequestOptions
+  options: CompleteRequestOptions,
+  setImmediateLambda?: (response: Response) => Promise<void>
 ): Promise<T> {
   return retry(
     async () => {
@@ -136,6 +172,11 @@ async function fetchInternal<T>(
           headers: getAllHeaders(options)
         })
         if (response.ok) {
+          if (setImmediateLambda) {
+            setImmediate(async () => {
+              await setImmediateLambda.apply(response)
+            })
+          }
           return await responseConsumer(response)
         } else {
           const responseText = await response.text()
