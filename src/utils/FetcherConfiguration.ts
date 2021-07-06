@@ -1,4 +1,5 @@
 export type RequestOptions = Partial<CompleteRequestOptions>
+import cookie from 'cookie'
 
 export type CompleteRequestOptions = {
   method: string
@@ -14,7 +15,7 @@ export function getAllHeaders(options: CompleteRequestOptions): Record<string, s
   const headers = options.headers || {}
   if (options.cookies && Object.entries(options.cookies).length > 0) {
     headers['Set-Cookie'] = Object.entries(options.cookies)
-      .map((entry) => `${entry[0]}=${entry[1]}`)
+      .map((entry) => cookie.serialize(entry[0], entry[1]))
       .reduce((a, b) => `${a}; ${b}`)
   }
   return headers
