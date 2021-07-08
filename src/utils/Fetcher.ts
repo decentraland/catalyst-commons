@@ -174,7 +174,7 @@ async function fetchInternal<T>(
         if (response.ok) {
           if (setImmediateLambda) {
             setImmediate(async () => {
-              await setImmediateLambda.apply(response)
+              await setImmediateLambda(response)
             })
           }
           return await responseConsumer(response)
