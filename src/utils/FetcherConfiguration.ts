@@ -14,7 +14,7 @@ export type CompleteRequestOptions = {
 export function getAllHeaders(options: CompleteRequestOptions): Record<string, string> {
   const headers = options.headers || {}
   if (options.cookies && Object.entries(options.cookies).length > 0) {
-    headers['Set-Cookie'] = Object.entries(options.cookies)
+    headers['Cookie'] = Object.entries(options.cookies)
       .map((entry) => cookie.serialize(entry[0], entry[1]))
       .reduce((a, b) => `${a}; ${b}`)
   }
