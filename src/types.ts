@@ -26,11 +26,6 @@ export type Entity = {
   metadata?: EntityMetadata
 }
 
-export type ContentFile = {
-  name: string
-  content: Buffer
-}
-
 export type ServerVersion = string
 export type ServerName = string
 export type ServerAddress = string
