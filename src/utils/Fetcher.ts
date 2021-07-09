@@ -16,7 +16,7 @@ import {
 
 export class Fetcher {
   private customDefaults: Omit<RequestOptions, 'body'>
-  private setImmediate: ((response: Response) => Promise<void>) | undefined = undefined
+  private responseMiddleware: (r: Response) => Promise<Response>
 
   constructor(customDefaults?: Omit<RequestOptions, 'body'>) {
     this.customDefaults = customDefaults ?? {}
@@ -26,20 +26,19 @@ export class Fetcher {
     this.customDefaults = mergeRequestOptions(this.customDefaults, overrideDefaults)
   }
 
-  /** Configure a lambda to run in another thread if the response was okay.
-   * This is used when you need to configure something of the fetcher according to the response obtained
-   * but you don't want to block the request.
+  /** Configure a lambda to execute with the response if it was okay.
+   * This is used when you need to configure something of the fetcher according to the response obtained.
    */
-  overrideSetImmediate(setImmediate: (response: Response) => Promise<void>): void {
-    this.setImmediate = setImmediate
+  setResponseMiddleware(responseMiddleware: (r: Response) => Promise<Response>): void {
+    this.responseMiddleware = responseMiddleware
   }
 
   fetchJson(url: string, options?: RequestOptions): Promise<any> {
-    return fetchJson(url, mergeRequestOptions(this.customDefaults, options), this.setImmediate)
+    return fetchJson(url, mergeRequestOptions(this.customDefaults, options), this.responseMiddleware)
   }
 
   fetchBuffer(url: string, options?: RequestOptions): Promise<Buffer> {
-    return fetchBuffer(url, mergeRequestOptions(this.customDefaults, options), this.setImmediate)
+    return fetchBuffer(url, mergeRequestOptions(this.customDefaults, options), this.responseMiddleware)
   }
 
   /**
@@ -50,11 +49,11 @@ export class Fetcher {
    * @param options config for the request
    */
   fetchPipe(url: string, writeTo: ReadableStream<Uint8Array>, options?: RequestOptions): Promise<Headers> {
-    return fetchPipe(url, writeTo, mergeRequestOptions(this.customDefaults, options), this.setImmediate)
+    return fetchPipe(url, writeTo, mergeRequestOptions(this.customDefaults, options), this.responseMiddleware)
   }
 
   postForm(url: string, options?: RequestOptions): Promise<any> {
-    return postForm(url, mergeRequestOptions(this.customDefaults, options), this.setImmediate)
+    return postForm(url, mergeRequestOptions(this.customDefaults, options), this.responseMiddleware)
   }
 
   queryGraph<T = any>(
@@ -63,33 +62,33 @@ export class Fetcher {
     variables: Record<string, any>,
     options?: RequestOptions
   ): Promise<T> {
-    return queryGraph(url, query, variables, mergeRequestOptions(this.customDefaults, options), this.setImmediate)
+    return queryGraph(url, query, variables, mergeRequestOptions(this.customDefaults, options), this.responseMiddleware)
   }
 }
 
 export async function fetchJson(
   url: string,
   options?: RequestOptions,
-  setImmediate?: (response: Response) => Promise<void>
+  responseMiddleware?: (r: Response) => Promise<Response>
 ): Promise<any> {
   return fetchInternal(
     url,
     (response) => response.json(),
     mergeRequestOptions(FETCH_JSON_DEFAULTS, options),
-    setImmediate
+    responseMiddleware
   )
 }
 
 export async function fetchBuffer(
   url: string,
   options?: RequestOptions,
-  setImmediate?: (response: Response) => Promise<void>
+  responseMiddleware?: (r: Response) => Promise<Response>
 ): Promise<Buffer> {
   return fetchInternal(
     url,
     (response) => extractBuffer(response),
     mergeRequestOptions(FETCH_BUFFER_DEFAULTS, options),
-    setImmediate
+    responseMiddleware
   )
 }
 
@@ -104,13 +103,13 @@ export async function fetchPipe(
   url: string,
   writeTo: ReadableStream<Uint8Array>,
   options?: RequestOptions,
-  setImmediate?: (response: Response) => Promise<void>
+  responseMiddleware?: (r: Response) => Promise<Response>
 ): Promise<Headers> {
   return fetchInternal(
     url,
     (response) => copyResponse(response, writeTo),
     mergeRequestOptions(FETCH_BUFFER_DEFAULTS, options),
-    setImmediate
+    responseMiddleware
   )
 }
 
@@ -125,9 +124,14 @@ async function copyResponse(response: Response, writeTo: ReadableStream<Uint8Arr
 export async function postForm(
   url: string,
   options?: RequestOptions,
-  setImmediate?: (response: Response) => Promise<void>
+  responseMiddleware?: (r: Response) => Promise<Response>
 ): Promise<any> {
-  return fetchInternal(url, (response) => response.json(), mergeRequestOptions(POST_DEFAULTS, options), setImmediate)
+  return fetchInternal(
+    url,
+    (response) => response.json(),
+    mergeRequestOptions(POST_DEFAULTS, options),
+    responseMiddleware
+  )
 }
 
 export async function queryGraph<T = any>(
@@ -135,7 +139,7 @@ export async function queryGraph<T = any>(
   query: string,
   variables: Record<string, any>,
   options?: RequestOptions,
-  setImmediate?: (response: Response) => Promise<void>
+  responseMiddleware?: (r: Response) => Promise<Response>
 ): Promise<T> {
   const response = await postForm(
     url,
@@ -143,7 +147,7 @@ export async function queryGraph<T = any>(
       { body: JSON.stringify({ query, variables }), headers: { 'Content-Type': 'application/json' } },
       options
     ),
-    setImmediate
+    responseMiddleware
   )
   if (response.errors) {
     throw new Error(`Error querying graph. Reasons: ${JSON.stringify(response.errors)}`)
@@ -155,7 +159,7 @@ async function fetchInternal<T>(
   url: string,
   responseConsumer: (response: Response) => Promise<T>,
   options: CompleteRequestOptions,
-  setImmediateLambda?: (response: Response) => Promise<void>
+  responseMiddleware?: (response: Response) => Promise<Response>
 ): Promise<T> {
   return retry(
     async () => {
@@ -165,17 +169,15 @@ async function fetchInternal<T>(
       }, ms(options.timeout))
 
       try {
-        const response: Response = await crossFetch(url, {
+        let response: Response = await crossFetch(url, {
           signal: controller.signal,
           body: options.body,
           method: options.method,
           headers: getAllHeaders(options)
         })
         if (response.ok) {
-          if (setImmediateLambda) {
-            setImmediate(async () => {
-              await setImmediateLambda(response)
-            })
+          if (responseMiddleware) {
+            response = await responseMiddleware(response)
           }
           return await responseConsumer(response)
         } else {
