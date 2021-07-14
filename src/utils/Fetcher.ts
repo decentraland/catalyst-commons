@@ -155,7 +155,7 @@ export async function queryGraph<T = any>(
 
 /**
  * This is the method where everything happens, all of the methods in this file call internally fetchInternal.
- * If you need to modify something for all requests, make it here.
+ * If you need to modify something for all requests, do it here.
  */
 async function fetchInternal<T>(
   url: string,
