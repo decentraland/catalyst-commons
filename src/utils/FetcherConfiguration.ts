@@ -1,6 +1,11 @@
 export type RequestOptions = Partial<CompleteRequestOptions>
 import cookie from 'cookie'
 
+export type CrossFetchRequest = {
+  requestInfo: string | RequestInfo
+  requestInit?: RequestInit
+}
+
 export type CompleteRequestOptions = {
   method: string
   attempts: number // Number of attempts to perform the request
@@ -9,6 +14,12 @@ export type CompleteRequestOptions = {
   body?: FormData | string
   headers?: Record<string, string>
   cookies?: Record<string, string>
+  // Configure a lambda to execute with the request, before executing it.
+  // This is used when you need to configure something of the fetcher according to the generated request.
+  requestMiddleware?: (request: CrossFetchRequest) => Promise<CrossFetchRequest>
+  // Configure a lambda to execute with the response if it was okay.
+  // This is used when you need to configure something of the fetcher according to the response obtained.
+  responseMiddleware?: (response: Response) => Promise<Response>
 }
 
 export function getAllHeaders(options: CompleteRequestOptions): Record<string, string> {
