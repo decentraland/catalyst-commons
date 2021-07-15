@@ -57,6 +57,11 @@ export class Fetcher {
   ): Promise<T> {
     return queryGraph(url, query, variables, mergeRequestOptions(this.customDefaults, options))
   }
+
+  // Clones the fetcher and creates a new one
+  clone(): Fetcher {
+    return new Fetcher(this.customDefaults)
+  }
 }
 
 export async function fetchJson(url: string, options?: RequestOptions): Promise<any> {
