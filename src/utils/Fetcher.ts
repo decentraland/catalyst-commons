@@ -7,17 +7,23 @@ import crossFetch from 'cross-fetch'
 
 import {
   CompleteRequestOptions,
+  CrossFetchRequest,
   FETCH_BUFFER_DEFAULTS,
   FETCH_JSON_DEFAULTS,
+  getAllHeaders,
   POST_DEFAULTS,
   RequestOptions
 } from './FetcherConfiguration'
 
 export class Fetcher {
-  private readonly customDefaults: Omit<RequestOptions, 'body'>
+  private customDefaults: Omit<RequestOptions, 'body'>
 
   constructor(customDefaults?: Omit<RequestOptions, 'body'>) {
     this.customDefaults = customDefaults ?? {}
+  }
+
+  overrideDefaults(overrideDefaults: Omit<RequestOptions, 'body'>): void {
+    this.customDefaults = mergeRequestOptions(this.customDefaults, overrideDefaults)
   }
 
   fetchJson(url: string, options?: RequestOptions): Promise<any> {
@@ -51,14 +57,19 @@ export class Fetcher {
   ): Promise<T> {
     return queryGraph(url, query, variables, mergeRequestOptions(this.customDefaults, options))
   }
+
+  // Clones the fetcher and creates a new one
+  clone(): Fetcher {
+    return new Fetcher(this.customDefaults)
+  }
 }
 
 export async function fetchJson(url: string, options?: RequestOptions): Promise<any> {
-  return fetchInternal(url, response => response.json(), mergeRequestOptions(FETCH_JSON_DEFAULTS, options))
+  return fetchInternal(url, (response) => response.json(), mergeRequestOptions(FETCH_JSON_DEFAULTS, options))
 }
 
 export async function fetchBuffer(url: string, options?: RequestOptions): Promise<Buffer> {
-  return fetchInternal(url, response => extractBuffer(response), mergeRequestOptions(FETCH_BUFFER_DEFAULTS, options))
+  return fetchInternal(url, (response) => extractBuffer(response), mergeRequestOptions(FETCH_BUFFER_DEFAULTS, options))
 }
 
 /**
@@ -75,7 +86,7 @@ export async function fetchPipe(
 ): Promise<Headers> {
   return fetchInternal(
     url,
-    response => copyResponse(response, writeTo),
+    (response) => copyResponse(response, writeTo),
     mergeRequestOptions(FETCH_BUFFER_DEFAULTS, options)
   )
 }
@@ -89,7 +100,7 @@ async function copyResponse(response: Response, writeTo: ReadableStream<Uint8Arr
 }
 
 export async function postForm(url: string, options?: RequestOptions): Promise<any> {
-  return fetchInternal(url, response => response.json(), mergeRequestOptions(POST_DEFAULTS, options))
+  return fetchInternal(url, (response) => response.json(), mergeRequestOptions(POST_DEFAULTS, options))
 }
 
 export async function queryGraph<T = any>(
@@ -111,6 +122,10 @@ export async function queryGraph<T = any>(
   return response.data
 }
 
+/**
+ * This is the method where everything happens, all of the methods in this file call internally fetchInternal.
+ * If you need to modify something for all requests, do it here.
+ */
 async function fetchInternal<T>(
   url: string,
   responseConsumer: (response: Response) => Promise<T>,
@@ -123,14 +138,24 @@ async function fetchInternal<T>(
         controller.abort()
       }, ms(options.timeout))
 
-      try {
-        const response: Response = await crossFetch(url, {
+      let request: CrossFetchRequest = {
+        requestInfo: url,
+        requestInit: {
           signal: controller.signal,
           body: options.body,
           method: options.method,
-          headers: options.headers
-        })
+          headers: getAllHeaders(options)
+        }
+      }
+      if (options.requestMiddleware) {
+        request = await options.requestMiddleware(request)
+      }
+      try {
+        let response: Response = await crossFetch(request.requestInfo, request.requestInit)
         if (response.ok) {
+          if (options.responseMiddleware) {
+            response = await options.responseMiddleware(response)
+          }
           return await responseConsumer(response)
         } else {
           const responseText = await response.text()

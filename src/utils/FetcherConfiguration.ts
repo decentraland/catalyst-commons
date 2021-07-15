@@ -1,4 +1,10 @@
 export type RequestOptions = Partial<CompleteRequestOptions>
+import cookie from 'cookie'
+
+export type CrossFetchRequest = {
+  requestInfo: string | RequestInfo
+  requestInit?: RequestInit
+}
 
 export type CompleteRequestOptions = {
   method: string
@@ -7,6 +13,23 @@ export type CompleteRequestOptions = {
   waitTime: string // Time to wait between attempts. Time format accepted by ms: Examples: '0.5s', '2m', '3h', '100' (assumed to be milliseconds)
   body?: FormData | string
   headers?: Record<string, string>
+  cookies?: Record<string, string>
+  // Configure a lambda to execute with the request, before executing it.
+  // This is used when you need to configure something of the fetcher according to the generated request.
+  requestMiddleware?: (request: CrossFetchRequest) => Promise<CrossFetchRequest>
+  // Configure a lambda to execute with the response if it was okay.
+  // This is used when you need to configure something of the fetcher according to the response obtained.
+  responseMiddleware?: (response: Response) => Promise<Response>
+}
+
+export function getAllHeaders(options: CompleteRequestOptions): Record<string, string> {
+  const headers = options.headers || {}
+  if (options.cookies && Object.entries(options.cookies).length > 0) {
+    headers['Cookie'] = Object.entries(options.cookies)
+      .map((entry) => cookie.serialize(entry[0], entry[1]))
+      .reduce((a, b) => `${a}; ${b}`)
+  }
+  return headers
 }
 
 export const FETCHER_DEFAULTS = {
