@@ -40,7 +40,8 @@ export type ServerStatus = {
 
 export enum EntityVersion {
   V2 = 'v2',
-  V3 = 'v3'
+  V3 = 'v3',
+  V4 = 'v4'
 }
 
 export type AvailableContentResult = { cid: ContentFileHash; available: boolean }[]

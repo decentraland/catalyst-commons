@@ -1,5 +1,6 @@
 import CID from 'cids'
 import multihashing from 'multihashing-async'
+import ipfsHashing from 'ipfs-only-hash'
 import { ContentFileHash } from '../types'
 
 export class Hashing {
@@ -16,5 +17,17 @@ export class Hashing {
   static async calculateBufferHash(buffer: Buffer): Promise<ContentFileHash> {
     const hash = await multihashing(buffer, 'sha2-256')
     return new CID(0, 'dag-pb', hash).toBaseEncodedString()
+  }
+
+  static async calculateIPFSHash(buffer: Buffer): Promise<ContentFileHash> {
+    return ipfsHashing.of(buffer, { cidVersion: 1 })
+  }
+
+  static async calculateIPFSHashes(files: Buffer[]): Promise<{ hash: ContentFileHash; file: Buffer }[]> {
+    const entries = Array.from(files).map<Promise<{ hash: ContentFileHash; file: Buffer }>>(async (file) => ({
+      hash: await this.calculateIPFSHash(file),
+      file
+    }))
+    return Promise.all(entries)
   }
 }
