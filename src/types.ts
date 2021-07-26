@@ -18,6 +18,7 @@ export enum EntityType {
 }
 
 export type Entity = {
+  version: EntityVersion
   id: EntityId
   type: EntityType
   pointers: Pointer[]
@@ -90,6 +91,7 @@ export type Deployment = DeploymentBase &
   DeploymentWithAuditInfo
 
 export type DeploymentBase = {
+  entityVersion: EntityVersion
   entityType: EntityType
   entityId: EntityId
   entityTimestamp: Timestamp
