@@ -27,13 +27,12 @@ export type Entity = {
   metadata?: EntityMetadata
 }
 
-export type ServerVersion = string
 export type ServerName = string
 export type ServerAddress = string
 
 export type ServerStatus = {
   name: ServerName
-  version: ServerVersion
+  version: EntityVersion
   currentTime: Timestamp
   lastImmutableTime: Timestamp
   historySize: number
