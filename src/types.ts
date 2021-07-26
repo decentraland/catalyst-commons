@@ -18,6 +18,7 @@ export enum EntityType {
 }
 
 export type Entity = {
+  version: EntityVersion
   id: EntityId
   type: EntityType
   pointers: Pointer[]
@@ -26,13 +27,12 @@ export type Entity = {
   metadata?: EntityMetadata
 }
 
-export type ServerVersion = string
 export type ServerName = string
 export type ServerAddress = string
 
 export type ServerStatus = {
   name: ServerName
-  version: ServerVersion
+  version: EntityVersion
   currentTime: Timestamp
   lastImmutableTime: Timestamp
   historySize: number
@@ -90,6 +90,7 @@ export type Deployment = DeploymentBase &
   DeploymentWithAuditInfo
 
 export type DeploymentBase = {
+  entityVersion: EntityVersion
   entityType: EntityType
   entityId: EntityId
   entityTimestamp: Timestamp
