@@ -147,15 +147,18 @@ async function fetchInternal<T>(
           headers: getAllHeaders(options)
         }
       }
+      console.log(`About to make the request to: ${request}`)
       if (options.requestMiddleware) {
         request = await options.requestMiddleware(request)
       }
       try {
         let response: Response = await crossFetch(request.requestInfo, request.requestInit)
+        console.log(`The response was: ${response}`)
         if (response.ok) {
           if (options.responseMiddleware) {
             response = await options.responseMiddleware(response)
           }
+          console.log(`Consuming the response..`)
           return await responseConsumer(response)
         } else {
           const responseText = await response.text()
