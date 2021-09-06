@@ -69,7 +69,13 @@ export async function fetchJson(url: string, options?: RequestOptions): Promise<
 }
 
 export async function fetchBuffer(url: string, options?: RequestOptions): Promise<Buffer> {
-  return fetchInternal(url, (response) => extractBuffer(response), mergeRequestOptions(FETCH_BUFFER_DEFAULTS, options))
+  return fetchInternal(
+    url,
+    async (response) => {
+      return await extractBuffer(response)
+    },
+    mergeRequestOptions(FETCH_BUFFER_DEFAULTS, options)
+  )
 }
 
 /**
@@ -174,7 +180,7 @@ async function extractBuffer(response: Response): Promise<Buffer> {
   if ('buffer' in response) {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    return response.buffer()
+    return await response.buffer()
   }
   const blob = await response.blob()
   return asyncBlobToBuffer(blob)
