@@ -1,8 +1,6 @@
 import ms from 'ms'
 import AbortController from 'abort-controller'
-import { clearTimeout, setTimeout } from 'timers'
 import { mergeRequestOptions, retry } from './Helper'
-import blobToBuffer from 'blob-to-buffer'
 import crossFetch from 'cross-fetch'
 
 import {
@@ -171,20 +169,6 @@ async function fetchInternal<T>(
 }
 
 async function extractBuffer(response: Response): Promise<Buffer> {
-  if ('buffer' in response) {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    return response.buffer()
-  }
-  const blob = await response.blob()
-  return asyncBlobToBuffer(blob)
-}
-
-function asyncBlobToBuffer(blob: Blob): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    blobToBuffer(blob, (err: Error, buffer: Buffer) => {
-      if (err) reject(err)
-      resolve(buffer)
-    })
-  })
+  const arrayBuffer = await response.arrayBuffer()
+  return Buffer.from(arrayBuffer)
 }
