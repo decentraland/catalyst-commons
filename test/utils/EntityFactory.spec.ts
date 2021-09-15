@@ -1,8 +1,8 @@
 import chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
-import { EntityType, EntityVersion } from 'types'
-import { Hashing } from 'utils'
-import { buildEntityAndFile } from 'utils/EntityFactory'
+import { EntityType, EntityVersion } from '../../src'
+import { Hashing } from '../../src/utils'
+import { buildEntityAndFile } from '../../src/utils/EntityFactory'
 
 chai.use(chaiAsPromised)
 const expect = chai.expect

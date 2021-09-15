@@ -57,6 +57,5 @@ export function mergeRequestOptions<T = CompleteRequestOptions | RequestOptions>
     ...(target as RequestOptions)?.cookies,
     ...source?.cookies
   }
-  const combinedOptions: T = applyDefaults(target, source)
-  return { ...combinedOptions, headers: combinedHeaders, cookies: combinedCookies }
+  return { ...target, ...source, headers: combinedHeaders, cookies: combinedCookies }
 }
