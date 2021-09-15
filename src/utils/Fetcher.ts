@@ -34,10 +34,16 @@ export class Fetcher {
     })
   }
 
+  /**
+   * @deprecated please use Fetcher.fetch instead
+   */
   fetchJson(url: string, options?: RequestOptions): Promise<unknown> {
     return fetchJson(url, mergeRequestOptions(this.customDefaults, options))
   }
 
+  /**
+   * @deprecated please use Fetcher.fetch instead
+   */
   fetchBuffer(url: string, options?: RequestOptions): Promise<Buffer> {
     return fetchBuffer(url, mergeRequestOptions(this.customDefaults, options))
   }
@@ -48,11 +54,15 @@ export class Fetcher {
    * @param url to request
    * @param writeTo the stream to pipe the response to
    * @param options config for the request
+   * @deprecated please use Fetcher.fetch instead
    */
   fetchPipe(url: string, writeTo: any, options?: RequestOptions): Promise<Headers> {
     return fetchPipe(url, writeTo, mergeRequestOptions(this.customDefaults, options))
   }
 
+  /**
+   * @deprecated please use Fetcher.fetch instead
+   */
   postForm(url: string, options?: RequestOptions): Promise<unknown> {
     return postForm(url, mergeRequestOptions(this.customDefaults, options))
   }
