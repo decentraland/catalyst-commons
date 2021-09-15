@@ -30,8 +30,7 @@ export class Fetcher {
       attempts: 1,
       timeout: '100d',
       waitTime: '0s',
-      ...mergeRequestOptions(this.customDefaults, options),
-      ...options
+      ...mergeRequestOptions(this.customDefaults, options)
     })
   }
 
