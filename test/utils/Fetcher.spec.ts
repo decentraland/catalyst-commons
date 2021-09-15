@@ -1,7 +1,7 @@
 import chai from 'chai'
 import mockttp = require('mockttp')
 import chaiAsPromised from 'chai-as-promised'
-import { delay, Fetcher } from 'utils'
+import { delay, Fetcher } from '../../src/utils'
 
 chai.use(chaiAsPromised)
 const expect = chai.expect
@@ -35,18 +35,18 @@ describe('Fetcher', () => {
   it('When making a POST with custom headers they are sent to the upstream', async () => {
     await mockServer.post('/mocked-path').thenReply(200, '{"body": "matching body"}')
 
-    const fetch = new Fetcher().postForm('http://localhost:8080/mocked-path', {
+    const res: any = new Fetcher().postForm('http://localhost:8080/mocked-path', {
       headers: { 'User-Agent': 'ContentServer/v2' }
     })
 
-    expect((await fetch).body).to.include('matching body')
+    expect((await res).body).to.include('matching body')
     await assertFetchHasHeader('User-Agent', 'ContentServer/v2')
   }).timeout('10s')
 
   it('When making a GET JSON with custom headers they are sent to the upstream', async () => {
     await mockServer.get('/mocked-path').thenReply(200, '{"body": "matching body"}')
 
-    const fetch = new Fetcher().fetchJson('http://localhost:8080/mocked-path', {
+    const fetch: any = new Fetcher().fetchJson('http://localhost:8080/mocked-path', {
       headers: { 'User-Agent': 'ContentServer/v2' }
     })
 
@@ -69,9 +69,9 @@ describe('Fetcher', () => {
     await mockServer.get('/mocked-path').thenReply(200, '{"body": "matching body"}')
     const fetcherWithHeadersConfig = new Fetcher({ headers: { 'User-Agent': 'ContentServer/v2' } })
 
-    const fetch = fetcherWithHeadersConfig.fetchJson('http://localhost:8080/mocked-path')
+    const fetch: any = await fetcherWithHeadersConfig.fetchJson('http://localhost:8080/mocked-path')
 
-    expect((await fetch).body).to.include('matching body')
+    expect(fetch.body).to.include('matching body')
     await assertFetchHasHeader('User-Agent', 'ContentServer/v2')
   }).timeout('10s')
 
@@ -79,12 +79,12 @@ describe('Fetcher', () => {
     await mockServer.get('/mocked-path').thenReply(200, '{"body": "matching body"}')
     const fetcherWithHeadersConfig = new Fetcher({ headers: { 'User-Agent': 'ContentServer/v2' } })
 
-    const fetch = fetcherWithHeadersConfig.fetchJson('http://localhost:8080/mocked-path', {
+    const res: any = await fetcherWithHeadersConfig.fetchJson('http://localhost:8080/mocked-path', {
       headers: { 'another-header': 'another-value' },
       timeout: '10s'
     })
 
-    expect((await fetch).body).to.include('matching body')
+    expect(res.body).to.include('matching body')
     await assertFetchHasHeader('User-Agent', 'ContentServer/v2')
     await assertFetchHasHeader('another-header', 'another-value')
   }).timeout('10s')
@@ -93,11 +93,11 @@ describe('Fetcher', () => {
     await mockServer.get('/mocked-path').thenReply(200, '{"body": "matching body"}')
     const fetcherWithHeadersConfig = new Fetcher({ headers: { 'User-Agent': 'ContentServer/v2' } })
 
-    const fetch = fetcherWithHeadersConfig.fetchJson('http://localhost:8080/mocked-path', {
+    const res: any = await fetcherWithHeadersConfig.fetchJson('http://localhost:8080/mocked-path', {
       headers: { 'User-Agent': 'another-value' }
     })
 
-    expect((await fetch).body).to.include('matching body')
+    expect(res.body).to.include('matching body')
     await assertFetchHasHeader('User-Agent', 'another-value')
   }).timeout('10s')
 
@@ -105,11 +105,11 @@ describe('Fetcher', () => {
     await mockServer.get('/mocked-path').thenReply(200, '{"body": "matching body"}')
     const fetcherWithHeadersConfig = new Fetcher()
 
-    const fetch = fetcherWithHeadersConfig.fetchJson('http://localhost:8080/mocked-path', {
+    const res: any = await fetcherWithHeadersConfig.fetchJson('http://localhost:8080/mocked-path', {
       headers: { 'User-Agent': 'ContentServer/v2' }
     })
 
-    expect((await fetch).body).to.include('matching body')
+    expect(res.body).to.include('matching body')
     await assertFetchHasHeader('User-Agent', 'ContentServer/v2')
   }).timeout('10s')
 })

@@ -1,6 +1,6 @@
 import chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
-import { CompleteRequestOptions, getAllHeaders } from 'utils'
+import { CompleteRequestOptions, getAllHeaders } from '../../src/utils'
 
 chai.use(chaiAsPromised)
 const expect = chai.expect

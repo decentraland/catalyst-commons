@@ -1,6 +1,6 @@
 import chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
-import { applyDefaults, applySomeDefaults, retry } from 'utils/Helper'
+import { applyDefaults, applySomeDefaults, retry } from '../../src/utils/Helper'
 
 chai.use(chaiAsPromised)
 const expect = chai.expect
