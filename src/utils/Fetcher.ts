@@ -145,7 +145,7 @@ async function fetchInternal(url: string, options: CompleteRequestOptions): Prom
       const transformRequest = options.requestMiddleware || identity
       const transformResponse = options.responseMiddleware || identity
 
-      const tranformedRequest = await transformRequest({
+      const request = await transformRequest({
         requestInfo: url,
         requestInit: {
           signal: controller.signal,
@@ -161,7 +161,7 @@ async function fetchInternal(url: string, options: CompleteRequestOptions): Prom
       }, ms(options.timeout))
 
       try {
-        const response: Response = await crossFetch(tranformedRequest.requestInfo, tranformedRequest.requestInit)
+        const response: Response = await crossFetch(request.requestInfo, request.requestInit)
         if (response.ok) {
           return await transformResponse(response)
         } else {
