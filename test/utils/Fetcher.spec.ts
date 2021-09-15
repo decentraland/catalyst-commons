@@ -1,6 +1,8 @@
 import chai from 'chai'
 import mockttp = require('mockttp')
 import chaiAsPromised from 'chai-as-promised'
+import MemoryStream from 'memorystream'
+import future from 'fp-future'
 import { delay, Fetcher } from '../../src/utils'
 
 chai.use(chaiAsPromised)
@@ -99,6 +101,29 @@ describe('Fetcher', () => {
 
     expect(res.body).to.include('matching body')
     await assertFetchHasHeader('User-Agent', 'another-value')
+  }).timeout('10s')
+
+  it('Piping works', async () => {
+    await mockServer.get('/mocked-pathxx').thenReply(200, 'abcdefghijklmnopqvwxyz\n')
+    const fetcherWithHeadersConfig = new Fetcher({ headers: { 'User-Agent': 'ContentServer/v2' } })
+
+    const stream = new MemoryStream([])
+    const streamEndedFuture = future<string>()
+
+    const data: any[] = []
+
+    stream.on('data', ($: any) => data.push($))
+    stream.on('end', () => streamEndedFuture.resolve(data.join('')))
+
+    await fetcherWithHeadersConfig.fetchPipe('http://localhost:8080/mocked-pathxx', stream, {
+      headers: { 'User-Agent': 'another-value' }
+    })
+
+    expect(streamEndedFuture.isPending).to.eq(true, 'the stream may not finish after the fetchPipe resolves')
+
+    await assertFetchHasHeader('User-Agent', 'another-value')
+
+    expect(await streamEndedFuture).to.equal('abcdefghijklmnopqvwxyz\n')
   }).timeout('10s')
 
   it('Given a Fetcher without custom defaults headers when setting a header then it is sent in the request', async () => {

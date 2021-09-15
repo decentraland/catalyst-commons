@@ -50,7 +50,8 @@ export class Fetcher {
 
   /**
    * Fetches the url and pipes the response obtained from the upstream to the `writeTo` Stream and
-   *  returns the headers from the upstream request.
+   * returns the headers from the upstream request.
+   * IMPORTANT: THIS METHOD DOES NOT AWAIT THE PIPE TO FINISH. THE PROMISE FULFILLS RIGHT AFTER WE RECEIVE THE HEADERS.
    * @param url to request
    * @param writeTo the stream to pipe the response to
    * @param options config for the request
@@ -94,7 +95,8 @@ export async function fetchBuffer(url: string, options?: RequestOptions): Promis
 
 /**
  * Fetches the url and pipes the response obtained from the upstream to the `writeTo` Stream and
- *  returns the headers from the upstream request.
+ * returns the headers from the upstream request.
+ * IMPORTANT: THIS METHOD DOES NOT AWAIT THE PIPE TO FINISH. THE PROMISE FULFILLS RIGHT AFTER WE RECEIVE THE HEADERS.
  * @param url to request
  * @param writeTo the stream to pipe the response to
  * @param options config for the request
