@@ -42,24 +42,24 @@
   },
   "homepage": "https://github.com/decentraland/catalyst-commons#readme",
   "dependencies": {
-    "@types/isomorphic-fetch": "0.0.35",
-    "@types/ms": "^0.7.31",
-    "@typescript-eslint/eslint-plugin": "^4.9.0",
-    "@typescript-eslint/parser": "^4.9.0",
     "abort-controller": "^3.0.0",
     "cids": "^0.8.0",
     "cookie": "^0.4.1",
-    "cross-fetch": "^3.0.5",
+    "cross-fetch": "^3.1.4",
     "dcl-crypto": "^2.1.0",
-    "eslint": "^7.14.0",
-    "eslint-config-prettier": "^7.2.0",
-    "eslint-plugin-prettier": "^3.2.0",
     "ipfs-only-hash": "^4.0.0",
     "ms": "^2.1.2",
     "multihashing-async": "^0.8.1",
-    "prettier": "^2.2.1"
+    "node-fetch": "^2.6.2"
   },
   "devDependencies": {
+    "prettier": "^2.2.1",
+    "eslint": "^7.14.0",
+    "eslint-config-prettier": "^7.2.0",
+    "eslint-plugin-prettier": "^3.2.0",
+    "@types/ms": "^0.7.31",
+    "@typescript-eslint/eslint-plugin": "^4.9.0",
+    "@typescript-eslint/parser": "^4.9.0",
     "@types/chai": "^4.2.8",
     "@types/chai-as-promised": "^7.1.2",
     "@types/mocha": "^8.2.0",
@@ -74,7 +74,7 @@
     "ts-mockito": "^2.6.1",
     "ts-node": "^9.1.1",
     "tsconfig-paths": "^3.9.0",
-    "typescript": "^4.1.3",
+    "typescript": "^4.4.3",
     "validate-commit-msg": "^2.14.0"
   },
   "prettier": {
