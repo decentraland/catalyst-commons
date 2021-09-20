@@ -9,12 +9,13 @@ export async function retry<T>(
   execution: () => Promise<T>,
   attempts: number,
   waitTime: string = '1s',
-  failedAttemptCallback?: (attemptsLeft: number) => void,
-  allFailedCallback?: () => void
+  failedAttemptCallback?: (attemptsLeft: number) => void
 ): Promise<T> {
   while (attempts > 0) {
     try {
       return await execution()
+      //     ^^^^^ never remove this "await" keyword, otherwise this function won't
+      //           catch the exception and perform the retries
     } catch (error) {
       attempts--
       if (attempts > 0) {
@@ -23,14 +24,11 @@ export async function retry<T>(
         }
         await delay(waitTime)
       } else {
-        if (allFailedCallback) {
-          allFailedCallback()
-        }
-        return Promise.reject(error)
+        throw error
       }
     }
   }
-  return Promise.reject(new Error('Should never reach here'))
+  throw new Error('Please specify more than one attempt for the retry function')
 }
 
 /** Add defaults to missing properties in the partial object */

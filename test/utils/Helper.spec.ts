@@ -29,10 +29,9 @@ describe('Helper', () => {
   })
 
   it('When execution fails, then retries are executed', async () => {
-    let allFailed = false
     let retries = 0
 
-    const result = await retry(
+    const result = retry(
       () => {
         if (retries == 0) {
           return Promise.reject('Fail')
@@ -42,29 +41,24 @@ describe('Helper', () => {
       },
       2,
       '10',
-      () => retries++,
-      () => (allFailed = true)
+      () => retries++
     )
 
-    expect(allFailed).to.be.false
+    expect(await result).to.eq('result')
     expect(retries).to.equal(1)
-    expect(result).to.equal('result')
   })
 
   it('When all attempts fails, then an error is thrown', async () => {
-    let allFailed = false
     let retries = 0
 
     const result = retry(
       () => Promise.reject('Error message'),
       3,
       '10',
-      () => retries++,
-      () => (allFailed = true)
+      () => retries++
     )
 
     await expect(result).to.rejectedWith('Error message')
-    expect(allFailed).to.be.true
     expect(retries).to.equal(2)
   })
 })

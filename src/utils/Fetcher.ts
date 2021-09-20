@@ -28,7 +28,9 @@ export class Fetcher {
       method: 'get',
       // it is better to not assume how this generic fetch will be used, not sending retries
       attempts: 1,
-      timeout: '100d',
+      // no timeout by default
+      timeout: '0s',
+      // no wait-time by default
       waitTime: '0s',
       ...mergeRequestOptions(this.customDefaults, options)
     })
@@ -167,9 +169,12 @@ async function fetchInternal(url: string, options: CompleteRequestOptions): Prom
       })
 
       // schedule timeout right after transforming Request
-      const timeout = setTimeout(() => {
-        controller.abort()
-      }, ms(options.timeout))
+      const timeoutTime = ms(options.timeout)
+      const timeout = timeoutTime
+        ? setTimeout(() => {
+            controller.abort()
+          }, timeoutTime)
+        : 0
 
       try {
         const response: Response = await crossFetch(request.requestInfo, request.requestInit)
@@ -180,7 +185,7 @@ async function fetchInternal(url: string, options: CompleteRequestOptions): Prom
           throw new Error(`Failed to fetch ${url}. Got status ${response.status}. Response was '${responseText}'`)
         }
       } finally {
-        clearTimeout(timeout)
+        if (timeout) clearTimeout(timeout)
       }
     },
     options.attempts,
