@@ -43,7 +43,7 @@
   "homepage": "https://github.com/decentraland/catalyst-commons#readme",
   "dependencies": {
     "abort-controller": "^3.0.0",
-    "cids": "^0.8.0",
+    "cids": "^1.1.9",
     "cookie": "^0.4.1",
     "cross-fetch": "^3.1.4",
     "dcl-crypto": "^2.1.0",
