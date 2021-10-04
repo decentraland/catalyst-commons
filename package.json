@@ -73,7 +73,7 @@
     "nyc": "^15.1.0",
     "prettier": "^2.2.1",
     "sinon": "^9.2.4",
-    "ts-node": "^9.1.1",
+    "ts-node": "^10.2.1",
     "typescript": "^4.4.3",
     "validate-commit-msg": "^2.14.0"
   },
