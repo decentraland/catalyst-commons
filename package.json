@@ -49,7 +49,7 @@
     "dcl-crypto": "^2.1.0",
     "ipfs-only-hash": "^4.0.0",
     "ms": "^2.1.2",
-    "multihashing-async": "^0.8.1",
+    "multihashing-async": "^2.1.4",
     "node-fetch": "^3.0.0"
   },
   "devDependencies": {
