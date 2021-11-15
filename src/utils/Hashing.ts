@@ -20,7 +20,8 @@ export class Hashing {
   }
 
   static async calculateIPFSHash(buffer: Buffer): Promise<ContentFileHash> {
-    return ipfsHashing.of(buffer, { cidVersion: 1 })
+    // CIDv1 requires rawLeaves: true
+    return ipfsHashing.of(buffer, { cidVersion: 1, onlyHash: true, rawLeaves: true })
   }
 
   static async calculateIPFSHashes(files: Buffer[]): Promise<{ hash: ContentFileHash; file: Buffer }[]> {
