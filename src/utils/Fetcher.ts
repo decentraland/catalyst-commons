@@ -90,6 +90,14 @@ export async function fetchJson(url: string, options?: RequestOptions): Promise<
   return response.json()
 }
 
+export async function fetchArrayBuffer(url: string, options?: RequestOptions): Promise<Uint8Array> {
+  const response = await fetchInternal(url, mergeRequestOptions(FETCH_BUFFER_DEFAULTS, options))
+  return new Uint8Array(await response.arrayBuffer())
+}
+
+/**
+ * @deprecated use fetchArrayBuffer instead
+ */
 export async function fetchBuffer(url: string, options?: RequestOptions): Promise<Buffer> {
   const response = await fetchInternal(url, mergeRequestOptions(FETCH_BUFFER_DEFAULTS, options))
   return Buffer.from(await response.arrayBuffer())

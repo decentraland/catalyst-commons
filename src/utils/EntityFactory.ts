@@ -27,7 +27,7 @@ export async function buildEntityAndFile({
   timestamp: Timestamp
   content?: EntityContentItemReference[]
   metadata?: EntityMetadata
-}): Promise<{ entity: Entity; entityFile: Buffer }> {
+}): Promise<{ entity: Entity; entityFile: Uint8Array }> {
   // Make sure that there is at least one pointer
   if (pointers.length === 0) {
     throw new Error(`All entities must have at least one pointer.`)
@@ -46,7 +46,7 @@ export async function buildEntityAndFile({
     metadata
   }
 
-  const entityFile = Buffer.from(JSON.stringify(entity))
+  const entityFile = new TextEncoder().encode(JSON.stringify(entity))
   const entityId: EntityId =
     version === EntityVersion.V3
       ? await Hashing.calculateBufferHash(entityFile)
