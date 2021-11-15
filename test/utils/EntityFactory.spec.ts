@@ -28,6 +28,7 @@ describe('EntityFactory', () => {
       timestamp: 20
     })
 
+    expect(entity.id).to.equal('QmUks92WKitaRZ6WrZ72JiFkALwhvSfJyQUsjVyjgP2PQh')
     expect(entity.id).to.equal(await Hashing.calculateBufferHash(entityFile))
   })
 
@@ -39,6 +40,7 @@ describe('EntityFactory', () => {
       timestamp: 20
     })
 
+    expect(entity.id).to.equal('bafkreieroe6yiojqs4zeoju2iqof6sqo5luoa5yqssjhm3g7h6fxtv36cy')
     expect(entity.id).to.equal(await Hashing.calculateIPFSHash(entityFile))
   })
 })
