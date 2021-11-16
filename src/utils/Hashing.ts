@@ -1,7 +1,7 @@
 import CID from 'cids'
 import multihashing from 'multihashing-async'
 import ipfsHashing from 'ipfs-only-hash'
-import { ContentFileHash } from '../types'
+import { ContentFileHash, EntityContentItemReference, EntityMetadata } from '../types'
 
 export namespace Hashing {
   /**
@@ -48,24 +48,27 @@ export namespace Hashing {
    *
    * Receives a Map<FileName,Hash> + metadata?
    */
-  export async function calculateMultipleHashesADR32(content?: Map<string, string>, metadata?: any) {
-    type KH = { key: string; hash: string }
-
+  export async function calculateMultipleHashesADR32(
+    contents: EntityContentItemReference[],
+    metadata?: EntityMetadata
+  ) {
     // Compare both by key and hash
-    const compare = (a: KH, b: KH) => {
+    const sorter = (a: EntityContentItemReference, b: EntityContentItemReference) => {
       if (a.hash > b.hash) return 1
       else if (a.hash < b.hash) return -1
-      else return a.key > b.key ? 1 : -1
+      else return a.file > b.file ? 1 : -1
     }
 
-    const entries = Array.from(content?.entries() ?? [])
-    const contentAsJson = entries.map(([key, hash]) => ({ key, hash })).sort(compare)
-
-    const buffer = new TextEncoder().encode(JSON.stringify({ content: contentAsJson, metadata }))
+    const data = new TextEncoder().encode(
+      JSON.stringify({
+        content: contents.sort(sorter).map((entry) => ({ key: entry.file, hash: entry.hash })),
+        metadata
+      })
+    )
 
     return {
-      buffer,
-      hash: await Hashing.calculateIPFSHash(buffer)
+      data,
+      hash: await Hashing.calculateIPFSHash(data)
     }
   }
 }
