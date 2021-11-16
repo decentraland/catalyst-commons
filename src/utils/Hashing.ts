@@ -42,14 +42,7 @@ export namespace Hashing {
     return Promise.all(entries)
   }
 
-  /**
-   * Calculates the content hash of multiple files to be used consistently by the builder
-   * and other content-based applications when hashes need to be stored on-chain.
-   */
-  export async function calculateMultipleHashesADR32(
-    contents: EntityContentItemReference[],
-    metadata?: EntityMetadata
-  ) {
+  function prepareADR32Data(contents: EntityContentItemReference[], metadata?: EntityMetadata) {
     // Compare both by key and hash
     const sorter = (a: EntityContentItemReference, b: EntityContentItemReference) => {
       if (a.hash > b.hash) return 1
@@ -57,16 +50,46 @@ export namespace Hashing {
       else return a.file > b.file ? 1 : -1
     }
 
-    const data = new TextEncoder().encode(
+    return new TextEncoder().encode(
       JSON.stringify({
         content: contents.sort(sorter).map((entry) => ({ key: entry.file, hash: entry.hash })),
         metadata
       })
     )
+  }
+
+  /**
+   * Calculates the content hash of multiple files to be used consistently by the builder
+   * and other content-based applications when hashes need to be stored on-chain.
+   *
+   * Returns the CIDv1 of the data prepared to sign
+   */
+  export async function calculateMultipleHashesADR32(
+    contents: EntityContentItemReference[],
+    metadata?: EntityMetadata
+  ) {
+    const data = prepareADR32Data(contents, metadata)
 
     return {
       data,
       hash: await Hashing.calculateIPFSHash(data)
+    }
+  }
+
+  /**
+   * Calculates the content hash of multiple files to be used consistently by the builder
+   * and other content-based applications when hashes need to be stored on-chain.
+   * @deprecated this is maintained only for compatibility reasons with calculateBufferHash (Qm prefix)
+   */
+  export async function calculateMultipleHashesADR32LegacyQmHash(
+    contents: EntityContentItemReference[],
+    metadata?: EntityMetadata
+  ) {
+    const data = prepareADR32Data(contents, metadata)
+
+    return {
+      data,
+      hash: await Hashing.calculateBufferHash(data)
     }
   }
 }
