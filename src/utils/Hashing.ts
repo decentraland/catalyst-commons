@@ -45,8 +45,6 @@ export namespace Hashing {
   /**
    * Calculates the content hash of multiple files to be used consistently by the builder
    * and other content-based applications when hashes need to be stored on-chain.
-   *
-   * Receives a Map<FileName,Hash> + metadata?
    */
   export async function calculateMultipleHashesADR32(
     contents: EntityContentItemReference[],
