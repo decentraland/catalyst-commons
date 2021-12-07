@@ -23,7 +23,7 @@ export class Fetcher {
     this.customDefaults = mergeRequestOptions(this.customDefaults, overrideDefaults)
   }
 
-  fetch(url: string, options: Partial<CompleteRequestOptions>): Promise<Response> {
+  fetch(url: string, options?: Partial<CompleteRequestOptions>): Promise<Response> {
     return fetchInternal(url, {
       method: 'get',
       // it is better to not assume how this generic fetch will be used, not sending retries
