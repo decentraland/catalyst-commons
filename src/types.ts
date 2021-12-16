@@ -35,7 +35,10 @@ export type ServerStatus = {
   version: EntityVersion
   currentTime: Timestamp
   lastImmutableTime: Timestamp
-  historySize: number
+  snapshot: {
+    lastUpdated: number
+    entities: Partial<Record<EntityType, number>>
+  }
 }
 
 export enum EntityVersion {
