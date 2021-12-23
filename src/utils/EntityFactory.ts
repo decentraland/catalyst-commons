@@ -1,4 +1,4 @@
-import { validateMetadata } from 'deployments'
+import { validateMetadata } from '../deployments'
 import {
   EntityType,
   Pointer,
