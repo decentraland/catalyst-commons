@@ -1,3 +1,4 @@
+import { validateMetadata } from 'deployments'
 import {
   EntityType,
   Pointer,
@@ -29,13 +30,13 @@ export async function buildEntityAndFile({
   metadata?: EntityMetadata
 }): Promise<{ entity: Entity; entityFile: Uint8Array }> {
   // Make sure that there is at least one pointer
-  if (pointers.length === 0) {
-    throw new Error(`All entities must have at least one pointer.`)
-  }
+  if (pointers.length === 0) throw new Error(`All entities must have at least one pointer.`)
 
-  if (version === EntityVersion.V2) {
-    throw new Error(`V2 is not supported.`)
-  }
+  if (version === EntityVersion.V2) throw new Error(`V2 is not supported.`)
+
+  if (version === EntityVersion.V4 && !metadata) throw new Error(`V4 entities must have metadata.`)
+
+  if (metadata && !validateMetadata(type, metadata)) throw new Error(`Metadata for entity ${type} is not valid.`)
 
   const entity = {
     version,
