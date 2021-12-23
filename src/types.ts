@@ -14,7 +14,8 @@ export type EntityContentItemReference = {
 export enum EntityType {
   SCENE = 'scene',
   PROFILE = 'profile',
-  WEARABLE = 'wearable'
+  WEARABLE = 'wearable',
+  STORE = 'store'
 }
 
 export type Entity = {
