@@ -1,5 +1,5 @@
 import { entityParameters } from './entities'
-import { EntityType } from 'types'
+import { EntityType } from '../types'
 
 export const validateMetadata = (entityType: EntityType, metadata: any): boolean => {
   const { validate } = entityParameters[entityType]

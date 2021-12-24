@@ -1,5 +1,5 @@
 import { Profile, Scene, Store, ValidateFunction, Wearable } from '@dcl/schemas'
-import { EntityType } from 'types'
+import { EntityType } from '../types'
 
 type AcceptedEntityType = Scene | Profile | Wearable | Store
 
