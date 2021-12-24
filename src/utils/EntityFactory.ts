@@ -34,9 +34,8 @@ export async function buildEntityAndFile({
 
   if (version === EntityVersion.V2) throw new Error(`V2 is not supported.`)
 
-  if (version === EntityVersion.V4 && !metadata) throw new Error(`V4 entities must have metadata.`)
-
-  if (metadata && !validateMetadata(type, metadata)) throw new Error(`Metadata for entity ${type} is not valid.`)
+  if (version === EntityVersion.V4 && (!metadata || !validateMetadata(type, metadata)))
+    throw new Error(`V4 entities must have a valid metadata.`)
 
   const entity = {
     version,
