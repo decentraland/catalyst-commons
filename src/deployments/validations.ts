@@ -10,9 +10,9 @@ export const validateMetadata = (entityType: EntityType, metadata: any): boolean
 }
 
 export const validateSize = (entityType: EntityType, currentSize: number): boolean => {
-  const { maxSize } = entityParameters[entityType]
-  if (!maxSize) {
+  const { maxSizeInMB } = entityParameters[entityType]
+  if (!maxSizeInMB) {
     throw new Error(`Unknown entity type: ${entityType}`)
   }
-  return currentSize <= maxSize
+  return currentSize <= maxSizeInMB
 }
