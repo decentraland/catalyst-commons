@@ -1,3 +1,3 @@
 export * from './types'
 export * from './utils'
-export * from './deployments'
+export * from './entities'

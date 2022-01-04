@@ -1,4 +1,3 @@
-import { validateMetadata } from '../deployments'
 import {
   EntityType,
   Pointer,
@@ -33,9 +32,6 @@ export async function buildEntityAndFile({
   if (pointers.length === 0) throw new Error(`All entities must have at least one pointer.`)
 
   if (version === EntityVersion.V2) throw new Error(`V2 is not supported.`)
-
-  if (version === EntityVersion.V4 && (!metadata || !validateMetadata(type, metadata)))
-    throw new Error(`V4 entities must have a valid metadata.`)
 
   const entity = {
     version,
