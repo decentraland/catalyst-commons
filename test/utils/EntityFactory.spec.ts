@@ -1,3 +1,4 @@
+import { Avatar } from '@dcl/schemas'
 import chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import { EntityType, EntityVersion } from '../../src'
@@ -33,14 +34,44 @@ describe('EntityFactory', () => {
   })
 
   it('When a v4 entity is built, the ipfs hash is used', async () => {
+    const avatarInfo = {
+      bodyShape: 'urn:decentraland:off-chain:base-avatars:BaseMale',
+      snapshots: {
+        face: 'bafybeiasb5vpmaounyilfuxbd3lryvosl4yefqrfahsb2esg46q6tu6y5q',
+        face128: 'bafybeiasb5vpmaounyilfuxbd3lryvosl4yefqrfahsb2esg46q6tu6y5r',
+        face256: 'bafybeiasb5vpmaounyilfuxbd3lryvosl4yefqrfahsb2esg46q6tu6y5s',
+        body: 'bafybeiasb5vpmaounyilfuxbd3lryvosl4yefqrfahsb2esg46q6tu6y5t'
+      },
+      eyes: { color: { r: 0.23046875, g: 0.625, b: 0.3125 } },
+      hair: { color: { r: 0.35546875, g: 0.19140625, b: 0.05859375 } },
+      skin: { color: { r: 0.94921875, g: 0.76171875, b: 0.6484375 } },
+      wearables: ['urn:decentraland:off-chain:base-avatars:tall_front_01']
+    }
+
+    const avatar: Avatar = {
+      userId: '0x87956abc4078a0cc3b89b419628b857b8af826ed',
+      email: 'some@email.com',
+      name: 'Some Name',
+      hasClaimedName: true,
+      description: 'Some Description',
+      ethAddress: '0x87956abC4078a0Cc3b89b419628b857B8AF826Ed',
+      version: 44,
+      avatar: avatarInfo,
+      tutorialStep: 355,
+      interests: []
+    }
+
     const { entity, entityFile } = await buildEntityAndFile({
       version: EntityVersion.V4,
       type: EntityType.PROFILE,
       pointers: ['P1'],
-      timestamp: 20
+      timestamp: 20,
+      metadata: {
+        avatars: [avatar]
+      }
     })
 
-    expect(entity.id).to.equal('bafkreieroe6yiojqs4zeoju2iqof6sqo5luoa5yqssjhm3g7h6fxtv36cy')
+    expect(entity.id).to.equal('bafkreidfgadcnltaiuoknishs7mnjqpgmed7l5i2veu7gmbxizqmv2ubsa')
     expect(entity.id).to.equal(await Hashing.calculateIPFSHash(entityFile))
   })
 })

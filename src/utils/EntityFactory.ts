@@ -29,13 +29,9 @@ export async function buildEntityAndFile({
   metadata?: EntityMetadata
 }): Promise<{ entity: Entity; entityFile: Uint8Array }> {
   // Make sure that there is at least one pointer
-  if (pointers.length === 0) {
-    throw new Error(`All entities must have at least one pointer.`)
-  }
+  if (pointers.length === 0) throw new Error(`All entities must have at least one pointer.`)
 
-  if (version === EntityVersion.V2) {
-    throw new Error(`V2 is not supported.`)
-  }
+  if (version === EntityVersion.V2) throw new Error(`V2 is not supported.`)
 
   const entity = {
     version,
