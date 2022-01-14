@@ -17,7 +17,7 @@ export const entityParameters: EntityParams = {
   },
   profile: {
     validate: Profile.validate,
-    maxSizeInMB: 1
+    maxSizeInMB: 2
   },
   wearable: {
     validate: Wearable.validate,
