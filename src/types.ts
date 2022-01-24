@@ -67,6 +67,7 @@ export type DeploymentFilters = {
   entityIds?: EntityId[]
   pointers?: Pointer[]
   onlyCurrentlyPointed?: boolean
+  includeOverwrittenInfo?: boolean
 }
 
 export type DeploymentSorting = {
