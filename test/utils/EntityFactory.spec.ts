@@ -37,8 +37,6 @@ describe('EntityFactory', () => {
     const avatarInfo = {
       bodyShape: 'urn:decentraland:off-chain:base-avatars:BaseMale',
       snapshots: {
-        face: 'bafybeiasb5vpmaounyilfuxbd3lryvosl4yefqrfahsb2esg46q6tu6y5q',
-        face128: 'bafybeiasb5vpmaounyilfuxbd3lryvosl4yefqrfahsb2esg46q6tu6y5r',
         face256: 'bafybeiasb5vpmaounyilfuxbd3lryvosl4yefqrfahsb2esg46q6tu6y5s',
         body: 'bafybeiasb5vpmaounyilfuxbd3lryvosl4yefqrfahsb2esg46q6tu6y5t'
       },
@@ -71,7 +69,7 @@ describe('EntityFactory', () => {
       }
     })
 
-    expect(entity.id).to.equal('bafkreidfgadcnltaiuoknishs7mnjqpgmed7l5i2veu7gmbxizqmv2ubsa')
+    expect(entity.id).to.equal('bafkreiawpk2gvgkxgvqwh5vwzh4yibcou5rfg3ddem3e4jl4mkgftq5ava')
     expect(entity.id).to.equal(await Hashing.calculateIPFSHash(entityFile))
   })
 })
