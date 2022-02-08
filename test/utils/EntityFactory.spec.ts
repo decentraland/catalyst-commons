@@ -1,8 +1,8 @@
+import { hashV1 } from '@dcl/hashing'
 import { Avatar } from '@dcl/schemas'
 import chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import { EntityType, EntityVersion } from '../../src'
-import { Hashing } from '../../src/utils'
 import { buildEntityAndFile } from '../../src/utils/EntityFactory'
 
 chai.use(chaiAsPromised)
@@ -21,7 +21,7 @@ describe('EntityFactory', () => {
     ).to.be.rejectedWith(`V2 is not supported.`)
   })
 
-  it('When a v3 entity is built, the non-ipfs hash is used', async () => {
+  it('When a v3 entity is built, CIDv1 is used', async () => {
     const { entity, entityFile } = await buildEntityAndFile({
       version: EntityVersion.V3,
       type: EntityType.PROFILE,
@@ -29,8 +29,54 @@ describe('EntityFactory', () => {
       timestamp: 20
     })
 
-    expect(entity.id).to.equal('QmUks92WKitaRZ6WrZ72JiFkALwhvSfJyQUsjVyjgP2PQh')
-    expect(entity.id).to.equal(await Hashing.calculateBufferHash(entityFile))
+    expect(entity.id).to.equal(await hashV1(entityFile))
+    expect(entity.id).to.equal('bafkreic7lioyaaith5fyrwptvobgbadbsvyo6vatnhvoxtwqwlzxrtsn3y')
+  })
+
+  it('Fails on filesystem name collision', async () => {
+    let didFail: any = null
+    try {
+      await buildEntityAndFile({
+        version: EntityVersion.V3,
+        type: EntityType.PROFILE,
+        pointers: ['P1'],
+        timestamp: 20,
+        content: [
+          { file: 'A', hash: '' },
+          { file: 'a', hash: '' }
+        ]
+      })
+    } catch (err: any) {
+      didFail = err
+    }
+
+    expect(didFail).to.not.equal(null)
+    expect(didFail.toString()).to.include('Decentraland\'s file system is case insensitive, the file "a" is repeated')
+  })
+
+  it('Does not fail on correct filesystem', async () => {
+    await buildEntityAndFile({
+      version: EntityVersion.V3,
+      type: EntityType.PROFILE,
+      pointers: ['P1'],
+      timestamp: 20,
+      content: [
+        { file: 'a', hash: '' },
+        { file: 'b', hash: '' }
+      ]
+    })
+  })
+
+  it('When an entity without version, CIDv1 is used and default version is v3', async () => {
+    const { entity, entityFile } = await buildEntityAndFile({
+      type: EntityType.PROFILE,
+      pointers: ['P1'],
+      timestamp: 20
+    })
+
+    expect(entity.version).to.equal(EntityVersion.V3)
+    expect(entity.id).to.equal(await hashV1(entityFile))
+    expect(entity.id).to.equal('bafkreic7lioyaaith5fyrwptvobgbadbsvyo6vatnhvoxtwqwlzxrtsn3y')
   })
 
   it('When a v4 entity is built, the ipfs hash is used', async () => {
@@ -69,7 +115,7 @@ describe('EntityFactory', () => {
       }
     })
 
+    expect(entity.id).to.equal(await hashV1(entityFile))
     expect(entity.id).to.equal('bafkreiawpk2gvgkxgvqwh5vwzh4yibcou5rfg3ddem3e4jl4mkgftq5ava')
-    expect(entity.id).to.equal(await Hashing.calculateIPFSHash(entityFile))
   })
 })

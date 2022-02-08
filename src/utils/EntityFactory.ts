@@ -1,3 +1,4 @@
+import { hashV1 } from '@dcl/hashing'
 import {
   EntityType,
   Pointer,
@@ -8,7 +9,6 @@ import {
   EntityId,
   EntityVersion
 } from '../types'
-import { Hashing } from './Hashing'
 
 /**
  * Take all the entity's data, build the entity file with it, and calculate its id
@@ -21,7 +21,8 @@ export async function buildEntityAndFile({
   content,
   metadata
 }: {
-  version: EntityVersion
+  /** @deprecated version is nolonger required since ADR51 */
+  version?: EntityVersion
   type: EntityType
   pointers: Pointer[]
   timestamp: Timestamp
@@ -34,7 +35,8 @@ export async function buildEntityAndFile({
   if (version === EntityVersion.V2) throw new Error(`V2 is not supported.`)
 
   const entity = {
-    version,
+    // default version is V3
+    version: version || EntityVersion.V3,
     type,
     pointers,
     timestamp,
@@ -42,11 +44,25 @@ export async function buildEntityAndFile({
     metadata
   }
 
+  // prevent duplicated file names
+  if (content) {
+    const usedFilenames = new Set<string>()
+    for (let a of content) {
+      const lowerCasedFileName = a.file.toLowerCase()
+      if (usedFilenames.has(lowerCasedFileName)) {
+        throw new Error(
+          `Error creating the deployable entity: Decentraland's file system is case insensitive, the file ${JSON.stringify(
+            a.file
+          )} is repeated`
+        )
+      }
+      usedFilenames.add(lowerCasedFileName)
+    }
+  }
+
   const entityFile = new TextEncoder().encode(JSON.stringify(entity))
-  const entityId: EntityId =
-    version === EntityVersion.V3
-      ? await Hashing.calculateBufferHash(entityFile)
-      : await Hashing.calculateIPFSHash(entityFile)
+
+  const entityId: EntityId = await hashV1(entityFile)
   const entityWithId: Entity = {
     id: entityId,
     ...entity
