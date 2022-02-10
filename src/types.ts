@@ -26,6 +26,7 @@ export type Entity = {
   timestamp: Timestamp
   content?: EntityContentItemReference[]
   metadata?: EntityMetadata
+  isDenylisted?: boolean
 }
 
 export type ServerName = string
