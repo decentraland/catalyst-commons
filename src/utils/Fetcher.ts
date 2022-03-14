@@ -16,7 +16,7 @@ export class Fetcher {
   customDefaults: Omit<RequestOptions, 'body'>
 
   constructor(customDefaults?: Omit<RequestOptions, 'body'>) {
-    this.customDefaults = customDefaults ?? {}
+    this.customDefaults = customDefaults ? customDefaults : {}
   }
 
   overrideDefaults(overrideDefaults: Omit<RequestOptions, 'body'>): void {
