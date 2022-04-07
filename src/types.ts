@@ -18,6 +18,12 @@ export enum EntityType {
   STORE = 'store'
 }
 
+export function entityTypeFromString(strType: string): EntityType {
+  strType = strType.toUpperCase().trim()
+  const type = EntityType[strType]
+  return type
+}
+
 export type Entity = {
   version: EntityVersion
   id: EntityId
@@ -113,7 +119,6 @@ export type AuditInfo = {
   authChain: AuthChain
   localTimestamp: Timestamp
   overwrittenBy?: EntityId
-  migrationData?: any
   isDenylisted?: boolean
   denylistedContent?: ContentFileHash[]
 }
