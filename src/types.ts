@@ -125,20 +125,6 @@ export type AuditInfo = {
 
 export type Profile = EntityMetadata
 
-export type LegacyAuditInfo = {
-  version: EntityVersion
-  deployedTimestamp: Timestamp
-  authChain: AuthChain
-  overwrittenBy?: EntityId
-  isDenylisted?: boolean
-  denylistedContent?: ContentFileHash[]
-  originalMetadata?: {
-    // This is used for migrations
-    originalVersion: EntityVersion
-    data: any
-  }
-}
-
 export enum HealthStatus {
   HEALTHY = 'Healthy',
   UNHEALTHY = 'Unhealthy',
