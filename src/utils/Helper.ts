@@ -34,22 +34,27 @@ export async function retry<T>(
 }
 
 /** Add defaults to missing properties in the partial object */
-export function applyDefaults<T, K = T | Partial<T>>(defaults: K, partial?: Partial<T>): K {
+export function applyDefaults<T, K = T | Partial<T>>(
+  defaults: K,
+  partial?: Partial<T>
+): K {
   return { ...defaults, ...partial }
 }
 
 /** Add some defaults to missing properties in the partial object. This means that the object is not yet complete */
-export function applySomeDefaults<T>(defaults: Partial<T>, partial?: Partial<T>): Partial<T> {
+export function applySomeDefaults<T>(
+  defaults: Partial<T>,
+  partial?: Partial<T>
+): Partial<T> {
   return { ...defaults, ...partial }
 }
 
 /** @deprecated migrate this function to your project
      As headers field is Record<string, string> type, then when merging request Options
      it's needed to merge the array instead of just applying the defaults.           */
-export function mergeRequestOptions<T = CompleteRequestOptions | RequestOptions>(
-  target: T,
-  source?: RequestOptions
-): T {
+export function mergeRequestOptions<
+  T = CompleteRequestOptions | RequestOptions
+>(target: T, source?: RequestOptions): T {
   const combinedHeaders: Record<string, string> = {
     ...(target as RequestOptions)?.headers,
     ...source?.headers
@@ -58,5 +63,10 @@ export function mergeRequestOptions<T = CompleteRequestOptions | RequestOptions>
     ...(target as RequestOptions)?.cookies,
     ...source?.cookies
   }
-  return { ...target, ...source, headers: combinedHeaders, cookies: combinedCookies }
+  return {
+    ...target,
+    ...source,
+    headers: combinedHeaders,
+    cookies: combinedCookies
+  }
 }

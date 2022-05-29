@@ -56,7 +56,10 @@ export enum EntityVersion {
   V4 = 'v4'
 }
 
-export type AvailableContentResult = { cid: ContentFileHash; available: boolean }[]
+export type AvailableContentResult = {
+  cid: ContentFileHash
+  available: boolean
+}[]
 
 export type PartialDeploymentHistory<T extends DeploymentBase> = {
   deployments: T[]
@@ -109,7 +112,9 @@ export type DeploymentBase = {
   deployedBy: EthAddress
 }
 export type DeploymentWithPointers = DeploymentBase & { pointers: Pointer[] }
-export type DeploymentWithContent = DeploymentBase & { content?: DeploymentContent[] }
+export type DeploymentWithContent = DeploymentBase & {
+  content?: DeploymentContent[]
+}
 export type DeploymentWithMetadata = DeploymentBase & { metadata?: any }
 export type DeploymentWithAuditInfo = DeploymentBase & { auditInfo: AuditInfo }
 
