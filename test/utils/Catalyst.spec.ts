@@ -10,6 +10,7 @@ const expect = chai.expect
 describe('Catalyst server list', () => {
   it('loads the catalysts from mainnet', async () => {
     const provider = new HTTPProvider('https://rpc.decentraland.org/mainnet')
+    provider.debug = true
     const servers = await getCatalystFromProvider(provider)
     expect(servers.length).to.greaterThan(0)
     expect(typeof servers[0].id).to.eq('string')
@@ -20,6 +21,7 @@ describe('Catalyst server list', () => {
 
   it('loads the catalysts from ropsten', async () => {
     const provider = new HTTPProvider('https://rpc.decentraland.org/ropsten')
+    provider.debug = true
     const servers = await getCatalystFromProvider(provider)
     expect(servers.length).to.greaterThan(0)
     expect(typeof servers[0].id).to.eq('string')

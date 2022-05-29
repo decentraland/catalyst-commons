@@ -31,7 +31,7 @@ export async function getCatalystFromProvider(
 
   const contractAddress = daoCatalystDeployments[networkId]
 
-  const contract2: {
+  const contract: {
     catalystCount(): Promise<BigNumber>
     catalystIds(input: string | number): Promise<Uint8Array>
     catalystById(id: Uint8Array): Promise<CatalystByIdResult>
@@ -40,14 +40,23 @@ export async function getCatalystFromProvider(
   )) as any
 
   const count = (
-    await retry(() => contract2.catalystCount(), 5, '0.1s')
+    await retry(() => contract.catalystCount(), 5, '0.1s')
   ).toNumber()
   const nodes: ServerMetadata[] = []
+  // Create an array with values from 0 to count - 1
+  const indices = new Array(count).fill(0).map((_, i) => i)
 
-  for (let i = 0; i < count; ++i) {
-    const id = await retry(() => contract2.catalystIds(i), 5, '0.1s')
-    const node = await retry(() => contract2.catalystById(id), 5, '0.1s')
+  const dataPromises = indices.map((index) =>
+    retry(
+      () => contract.catalystIds(index).then((id) => contract.catalystById(id)),
+      5,
+      '0.1s'
+    )
+  )
 
+  const data = await Promise.all(dataPromises)
+
+  for (const node of data) {
     if (node.domain.startsWith('http://')) {
       console.warn(
         `Catalyst node domain using http protocol, skipping ${JSON.stringify(
@@ -67,7 +76,7 @@ export async function getCatalystFromProvider(
     nodes.push({
       ...node,
       address: node.domain,
-      id: '0x' + bytesToHex(id),
+      id: '0x' + bytesToHex(node.id),
       original: node
     })
   }
