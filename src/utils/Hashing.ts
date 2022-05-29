@@ -1,6 +1,7 @@
 import * as hashing from '@dcl/hashing'
 import { ContentFileHash } from '../types'
 
+/** @deprecated use well-known-components fetcher instead */
 export namespace Hashing {
   /**
    * Given a set of files, return a map with their hash

@@ -1,9 +1,14 @@
-import { AuthChain, EthAddress } from 'dcl-crypto'
+import { AuthChain, EthAddress } from '@dcl/schemas'
 
+/** @deprecated */
 export type ContentFileHash = string
+/** @deprecated */
 export type Timestamp = number
+/** @deprecated */
 export type EntityId = ContentFileHash
+/** @deprecated */
 export type Pointer = string
+/** @deprecated */
 export type EntityMetadata = any
 
 export type EntityContentItemReference = {
@@ -11,6 +16,7 @@ export type EntityContentItemReference = {
   hash: ContentFileHash
 }
 
+/** @deprecated use the type from @dcl/schemas */
 export enum EntityType {
   SCENE = 'scene',
   PROFILE = 'profile',
@@ -18,6 +24,7 @@ export enum EntityType {
   STORE = 'store'
 }
 
+/** @deprecated use the type from @dcl/schemas */
 export type Entity = {
   version: EntityVersion
   id: EntityId
@@ -28,9 +35,12 @@ export type Entity = {
   metadata?: EntityMetadata
 }
 
+/** @deprecated use the type from @dcl/schemas */
 export type ServerName = string
+/** @deprecated use the type from @dcl/schemas */
 export type ServerAddress = string
 
+/** @deprecated use the type from @dcl/schemas */
 export type ServerStatus = {
   name: ServerName
   version: EntityVersion
@@ -39,6 +49,7 @@ export type ServerStatus = {
   historySize: number
 }
 
+/** @deprecated use the type from @dcl/schemas */
 export enum EntityVersion {
   V2 = 'v2',
   V3 = 'v3',

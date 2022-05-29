@@ -12,6 +12,7 @@ import {
   RequestOptions
 } from './FetcherConfiguration'
 
+/** @deprecated use well-known-components fetcher instead */
 export class Fetcher {
   customDefaults: Omit<RequestOptions, 'body'>
 
@@ -85,11 +86,13 @@ export class Fetcher {
   }
 }
 
+/** @deprecated use well-known-components fetcher instead */
 export async function fetchJson(url: string, options?: RequestOptions): Promise<unknown> {
   const response = await fetchInternal(url, mergeRequestOptions(FETCH_JSON_DEFAULTS, options))
   return response.json()
 }
 
+/** @deprecated use well-known-components fetcher instead */
 export async function fetchArrayBuffer(url: string, options?: RequestOptions): Promise<Uint8Array> {
   const response = await fetchInternal(url, mergeRequestOptions(FETCH_BUFFER_DEFAULTS, options))
   return new Uint8Array(await response.arrayBuffer())
@@ -110,6 +113,7 @@ export async function fetchBuffer(url: string, options?: RequestOptions): Promis
  * @param url to request
  * @param writeTo the stream to pipe the response to
  * @param options config for the request
+ * @deprecated
  */
 export async function fetchPipe(url: string, writeTo: any, options?: RequestOptions): Promise<Headers> {
   const response = await fetchInternal(url, mergeRequestOptions(FETCH_BUFFER_DEFAULTS, options))
@@ -133,7 +137,7 @@ export type GraphQLResponse = {
   errors: any[]
   data: any
 }
-
+/** @deprecated use well-known-components thegraph-component instead */
 export async function queryGraph<T = any>(
   url: string,
   query: string,

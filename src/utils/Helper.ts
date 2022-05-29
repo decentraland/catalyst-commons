@@ -1,10 +1,12 @@
 import ms from 'ms'
 import { CompleteRequestOptions, RequestOptions } from './FetcherConfiguration'
 
+/** @deprecated migrate this function to your project */
 export function delay(time: string): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms(time)))
 }
 
+/** @deprecated migrate this function to your project */
 export async function retry<T>(
   execution: () => Promise<T>,
   attempts: number,
@@ -41,7 +43,8 @@ export function applySomeDefaults<T>(defaults: Partial<T>, partial?: Partial<T>)
   return { ...defaults, ...partial }
 }
 
-/**  As headers field is Record<string, string> type, then when merging request Options
+/** @deprecated migrate this function to your project
+     As headers field is Record<string, string> type, then when merging request Options
      it's needed to merge the array instead of just applying the defaults.           */
 export function mergeRequestOptions<T = CompleteRequestOptions | RequestOptions>(
   target: T,

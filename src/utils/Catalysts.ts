@@ -1,57 +1,61 @@
-import { CatalystData, DAOContract } from '../contracts/CatalystContract'
-import type { EthAddress } from 'dcl-crypto'
-import { EthNetwork } from '../contracts/utils'
+import { EthAddress } from '@dcl/schemas'
+import RequestManager, { BigNumber, bytesToHex, ContractFactory } from 'eth-connect'
+import { retry } from './Helper'
+import { daoCatalystDeployments, catalystAbiItems } from '../contracts/CatalystAbi'
 
-export function getMainnetCatalysts(): Promise<ServerMetadata[]> {
-  return getServersFromNetwork('mainnet')
+type CatalystByIdResult = {
+  id: Uint8Array
+  owner: string
+  domain: string
 }
 
-export function getRopstenCatalysts(): Promise<ServerMetadata[]> {
-  return getServersFromNetwork('ropsten')
-}
+/** Returns the catalyst list for a specified Ethereum Provider. */
+export async function getCatalystFromProvider(etherumProvider: any): Promise<ServerMetadata[]> {
+  const requestManager = new RequestManager(etherumProvider)
 
-async function getServersFromNetwork(network: EthNetwork): Promise<ServerMetadata[]> {
-  const contract = DAOContract.withNetwork(network)
+  const networkId = (await requestManager.net_version()).toString()
 
-  // Check count on the list
-  const count = await contract.getCount()
+  if (!(networkId in daoCatalystDeployments))
+    throw new Error(`The networkId=${networkId} doesn't have a deployed Catalyst Registry contract`)
 
-  // Create an array with values from 0 to count - 1
-  const indices = new Array(count).fill(0).map((_, i) => i)
+  const contractAddress = daoCatalystDeployments[networkId]
 
-  // Fetch data from the contract
-  const dataPromises: Promise<CatalystData>[] = indices.map((index) =>
-    contract.getCatalystIdByIndex(index).then((id) => contract.getServerData(id))
-  )
-  const data = await Promise.all(dataPromises)
+  const contract2: {
+    catalystCount(): Promise<BigNumber>
+    catalystIds(input: string | number): Promise<Uint8Array>
+    catalystById(id: Uint8Array): Promise<CatalystByIdResult>
+  } = (await new ContractFactory(requestManager, catalystAbiItems).at(contractAddress)) as any
 
-  // Map and return
-  return data.map(toMetadata).filter((metadata): metadata is ServerMetadata => !!metadata)
-}
+  const count = (await retry(() => contract2.catalystCount(), 5, '0.1s')).toNumber()
+  const nodes: ServerMetadata[] = []
 
-/**
- * Converts the data from the contract into something more useful.
- * Returns undefined if the data from the contract is invalid.
- */
-function toMetadata(data: CatalystData): ServerMetadata | undefined {
-  const { id, owner, domain } = data
+  for (let i = 0; i < count; ++i) {
+    const id = await retry(() => contract2.catalystIds(i), 5, '0.1s')
+    const node = await retry(() => contract2.catalystById(id), 5, '0.1s')
 
-  let address = domain.trim()
+    if (node.domain.startsWith('http://')) {
+      console.warn(`Catalyst node domain using http protocol, skipping ${JSON.stringify(node)}`)
+      continue
+    }
 
-  if (address.startsWith('http://')) {
-    console.warn(`Catalyst node domain using http protocol, skipping ${address}`)
-    return undefined
+    if (!node.domain.startsWith('https://')) {
+      node.domain = 'https://' + node.domain
+    }
+
+    // trim url in case it starts/ends with a blank
+    node.domain = node.domain.trim()
+
+    nodes.push({ ...node, address: node.domain, id: '0x' + bytesToHex(id), original: node })
   }
-
-  if (!address.startsWith('https://')) {
-    address = 'https://' + address
-  }
-
-  return { address, owner, id }
+  return nodes
 }
 
+/** @deprecated stop using this type */
 export type ServerMetadata = {
+  /** @deprecated use domain instead */
   address: string
+  domain: string
   owner: EthAddress
   id: string
+  original: any
 }
