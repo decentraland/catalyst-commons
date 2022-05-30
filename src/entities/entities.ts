@@ -10,6 +10,7 @@ type Params = {
 
 type EntityParams = Record<EntityType, Params>
 
+/** @deprecated migrate this validations to the content-validator repository */
 export const entityParameters: EntityParams = {
   scene: {
     validate: Scene.validate,
