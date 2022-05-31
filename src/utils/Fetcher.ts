@@ -21,16 +21,10 @@ export class Fetcher {
   }
 
   overrideDefaults(overrideDefaults: Omit<RequestOptions, 'body'>): void {
-    this.customDefaults = mergeRequestOptions(
-      this.customDefaults,
-      overrideDefaults
-    )
+    this.customDefaults = mergeRequestOptions(this.customDefaults, overrideDefaults)
   }
 
-  fetch(
-    url: string,
-    options?: Partial<CompleteRequestOptions>
-  ): Promise<Response> {
+  fetch(url: string, options?: Partial<CompleteRequestOptions>): Promise<Response> {
     return fetchInternal(url, {
       method: 'get',
       // it is better to not assume how this generic fetch will be used, not sending retries
@@ -66,16 +60,8 @@ export class Fetcher {
    * @param options config for the request
    * @deprecated please use Fetcher.fetch instead
    */
-  fetchPipe(
-    url: string,
-    writeTo: any,
-    options?: RequestOptions
-  ): Promise<Headers> {
-    return fetchPipe(
-      url,
-      writeTo,
-      mergeRequestOptions(this.customDefaults, options)
-    )
+  fetchPipe(url: string, writeTo: any, options?: RequestOptions): Promise<Headers> {
+    return fetchPipe(url, writeTo, mergeRequestOptions(this.customDefaults, options))
   }
 
   /**
@@ -91,12 +77,7 @@ export class Fetcher {
     variables: Record<string, any>,
     options?: RequestOptions
   ): Promise<T> {
-    return queryGraph(
-      url,
-      query,
-      variables,
-      mergeRequestOptions(this.customDefaults, options)
-    )
+    return queryGraph(url, query, variables, mergeRequestOptions(this.customDefaults, options))
   }
 
   // Clones the fetcher and creates a new one
@@ -106,40 +87,22 @@ export class Fetcher {
 }
 
 /** @deprecated use well-known-components fetcher instead */
-export async function fetchJson(
-  url: string,
-  options?: RequestOptions
-): Promise<unknown> {
-  const response = await fetchInternal(
-    url,
-    mergeRequestOptions(FETCH_JSON_DEFAULTS, options)
-  )
+export async function fetchJson(url: string, options?: RequestOptions): Promise<unknown> {
+  const response = await fetchInternal(url, mergeRequestOptions(FETCH_JSON_DEFAULTS, options))
   return response.json()
 }
 
 /** @deprecated use well-known-components fetcher instead */
-export async function fetchArrayBuffer(
-  url: string,
-  options?: RequestOptions
-): Promise<Uint8Array> {
-  const response = await fetchInternal(
-    url,
-    mergeRequestOptions(FETCH_BUFFER_DEFAULTS, options)
-  )
+export async function fetchArrayBuffer(url: string, options?: RequestOptions): Promise<Uint8Array> {
+  const response = await fetchInternal(url, mergeRequestOptions(FETCH_BUFFER_DEFAULTS, options))
   return new Uint8Array(await response.arrayBuffer())
 }
 
 /**
  * @deprecated use fetchArrayBuffer instead
  */
-export async function fetchBuffer(
-  url: string,
-  options?: RequestOptions
-): Promise<Buffer> {
-  const response = await fetchInternal(
-    url,
-    mergeRequestOptions(FETCH_BUFFER_DEFAULTS, options)
-  )
+export async function fetchBuffer(url: string, options?: RequestOptions): Promise<Buffer> {
+  const response = await fetchInternal(url, mergeRequestOptions(FETCH_BUFFER_DEFAULTS, options))
   return Buffer.from(await response.arrayBuffer())
 }
 
@@ -152,39 +115,21 @@ export async function fetchBuffer(
  * @param options config for the request
  * @deprecated
  */
-export async function fetchPipe(
-  url: string,
-  writeTo: any,
-  options?: RequestOptions
-): Promise<Headers> {
-  const response = await fetchInternal(
-    url,
-    mergeRequestOptions(FETCH_BUFFER_DEFAULTS, options)
-  )
+export async function fetchPipe(url: string, writeTo: any, options?: RequestOptions): Promise<Headers> {
+  const response = await fetchInternal(url, mergeRequestOptions(FETCH_BUFFER_DEFAULTS, options))
 
-  if (!response.body)
-    throw new Error(
-      'The function fetchPipe only works in Node.js compatible enviroments'
-    )
+  if (!response.body) throw new Error('The function fetchPipe only works in Node.js compatible enviroments')
 
   if ('pipe' in response.body) {
     ;(response.body as any).pipe(writeTo)
     return response.headers
   }
 
-  throw new Error(
-    'The function fetchPipe only works in Node.js compatible enviroments'
-  )
+  throw new Error('The function fetchPipe only works in Node.js compatible enviroments')
 }
 
-export async function postForm(
-  url: string,
-  options?: RequestOptions
-): Promise<unknown> {
-  const res = await fetchInternal(
-    url,
-    mergeRequestOptions(POST_DEFAULTS, options)
-  )
+export async function postForm(url: string, options?: RequestOptions): Promise<unknown> {
+  const res = await fetchInternal(url, mergeRequestOptions(POST_DEFAULTS, options))
   return res.json()
 }
 
@@ -205,9 +150,7 @@ export async function queryGraph<T = any>(
     ...options
   })) as GraphQLResponse
   if (response.errors) {
-    throw new Error(
-      `Error querying graph. Reasons: ${JSON.stringify(response.errors)}`
-    )
+    throw new Error(`Error querying graph. Reasons: ${JSON.stringify(response.errors)}`)
   }
   return response.data
 }
@@ -220,10 +163,7 @@ async function identity<T>(a: T): Promise<T> {
  * This is the method where everything happens, all of the methods in this file call internally fetchInternal.
  * If you need to modify something for all requests, do it here.
  */
-async function fetchInternal(
-  url: string,
-  options: CompleteRequestOptions
-): Promise<Response> {
+async function fetchInternal(url: string, options: CompleteRequestOptions): Promise<Response> {
   return retry(
     async () => {
       const controller = new AbortController()
@@ -249,17 +189,12 @@ async function fetchInternal(
         : 0
 
       try {
-        const response: Response = await crossFetch(
-          request.requestInfo,
-          request.requestInit
-        )
+        const response: Response = await crossFetch(request.requestInfo, request.requestInit)
         if (response.ok) {
           return await transformResponse(response)
         } else {
           const responseText = await response.text()
-          throw new Error(
-            `Failed to fetch ${url}. Got status ${response.status}. Response was '${responseText}'`
-          )
+          throw new Error(`Failed to fetch ${url}. Got status ${response.status}. Response was '${responseText}'`)
         }
       } finally {
         if (timeout) clearTimeout(timeout)

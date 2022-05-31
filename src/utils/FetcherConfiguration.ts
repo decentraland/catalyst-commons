@@ -22,9 +22,7 @@ export type CompleteRequestOptions = {
   responseMiddleware?: (response: Response) => Promise<Response>
 }
 
-export function getAllHeaders(
-  options: CompleteRequestOptions
-): Record<string, string> {
+export function getAllHeaders(options: CompleteRequestOptions): Record<string, string> {
   const headers = options.headers || {}
   if (options.cookies && Object.entries(options.cookies).length > 0) {
     headers['Cookie'] = Object.entries(options.cookies)
