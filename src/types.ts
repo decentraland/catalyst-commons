@@ -1,4 +1,4 @@
-import { AuthChain, EthAddress } from '@dcl/schemas'
+import { AuthChain, EntityType, EthAddress } from '@dcl/schemas'
 
 /** @deprecated */
 export type ContentFileHash = string
@@ -15,14 +15,7 @@ export type EntityContentItemReference = {
   file: string
   hash: ContentFileHash
 }
-
-/** @deprecated use the type from @dcl/schemas */
-export enum EntityType {
-  SCENE = 'scene',
-  PROFILE = 'profile',
-  WEARABLE = 'wearable',
-  STORE = 'store'
-}
+export { EntityType } from '@dcl/schemas'
 
 /** @deprecated use the type from @dcl/schemas */
 export type Entity = {
